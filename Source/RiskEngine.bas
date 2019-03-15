@@ -113,7 +113,10 @@ Public Sub Simulate()
     Next Iter
     
     OutSheet.Range("A3").CurrentRegion.Columns.AutoFit
-    ProduceStatistics Iterations, RiskInputs, RiskOutputs, OutSheet
+    ' Produce Statistics
+    ProduceStatistics Iterations, RiskOutputs, OutSheet
+    ' Produce histograms only if Excel version > 16
+    If Val(Application.Version) >= 16 Then ProduceHistograms Iterations, RiskOutputs, OutSheet
     OutSheet.Activate
 RestoreExcel:
     'Restore Calculation Mode
@@ -193,6 +196,16 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
         .Columns.AutoFit
         .HorizontalAlignment = xlCenter
     End With
+    
+    '  Setup Output Distributions
+    Set Curr = Curr.Offset(0, 1)
+    Curr.Offset(-1, 0) = "Output Distributions"
+    Curr.Offset(1, 0).Name = "OutDist"
+    With Range(Curr.Offset(-1, 0), Curr.Offset(-1, 9))
+        .Merge
+        .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+    End With
 End Sub
 
 Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String, Count As Integer)
@@ -202,7 +215,7 @@ Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address
     Cell.Offset(0, 1).Formula = "=" & StatFormula & "(" & Address & ")"
 End Sub
 
-Sub ProduceStatistics(Iterations As Integer, RiskInputs As Collection, RiskOutputs As Collection, OutSheet As Worksheet)
+Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
     Dim FirstOutput As Range
     Dim Cell As Range
     Dim I As Integer
@@ -248,4 +261,37 @@ Sub ProduceStatistics(Iterations As Integer, RiskInputs As Collection, RiskOutpu
     Next PCount
     If Count > 1 Then Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, 1)).Copy Range(Cell.Offset(15, 2), Cell.Offset(15 + 20, Count))
     Cell.CurrentRegion.Columns.AutoFit
+End Sub
+
+Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
+    Dim FirstOutput As Range
+    Dim Cell As Range
+    Dim I As Integer
+    Dim R As Range
+    Dim ChartShape As Shape
+    Dim NewChart As Chart
+    
+    Const ChartHeight = 22
+    Const ChartWidth = 10
+    Set Cell = OutSheet.Range("OutputResults")
+    Set FirstOutput = OutSheet.Range(Cell, Cell.Offset(Iterations - 1))
+    Set Cell = OutSheet.Range("OutDist")
+    Set R = Range(Cell, Cell.Offset(ChartHeight - 1, ChartWidth - 1))
+    
+    OutSheet.Activate
+    For I = 1 To RiskOutputs.Count
+        ' Range needs to be selected
+        'https://stackoverflow.com/questions/37912746/vba-why-xlhistogram-does-not-work
+        FirstOutput.Select
+        Set ChartShape = ActiveSheet.Shapes.AddChart2(-1, xlHistogram, R.Left, R.Top, R.Width, R.Height)
+        Set NewChart = ChartShape.Chart
+        
+        Set Cell = RiskOutputs(I)(2)
+        With NewChart
+           .SetElement (msoElementChartTitleAboveChart)
+           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & "'" & Cell.Parent.Name & "'!" & Cell.Address & ")"
+        End With
+        Set R = R.Offset(ChartHeight + 1)
+    Next I
+    OutSheet.Range("A1").Select
 End Sub
