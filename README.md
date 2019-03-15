@@ -4,6 +4,8 @@ Excell addin for performing Monte Carlo simulation
 **Free and Open Source.**
 Works in a similar fashion to commercial addins such as [@RISK by Palisade](http://www.palisade.com).  Compatible with Mac.
 
+Download [Excel addin](https://github.com/pyscripter/XLRisk/raw/master/XLRisk.xlam).
+
 *Note:*  
 Excel 16 or newer is recommended.
 
