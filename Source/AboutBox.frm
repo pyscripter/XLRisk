@@ -1,0 +1,18 @@
+VERSION 5.00
+Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} AboutBox 
+   Caption         =   "About XLRisk"
+   ClientHeight    =   2424
+   ClientLeft      =   96
+   ClientTop       =   432
+   ClientWidth     =   4356
+   OleObjectBlob   =   "AboutBox.frx":0000
+   StartUpPosition =   1  'CenterOwner
+End
+Attribute VB_Name = "AboutBox"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = True
+Attribute VB_Exposed = False
+Private Sub btnOK_Click()
+    Unload Me
+End Sub
