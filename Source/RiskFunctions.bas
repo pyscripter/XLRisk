@@ -76,6 +76,7 @@ End Function
 Sub CreateFunctionDescription(FuncName, FuncDesc, ArgDesc)
 '   Creates a description for a function and its arguments
 '   They are used by the Excel function wizard
+    On Error Resume Next
     Call Application.MacroOptions( _
       Macro:=FuncName, _
       Description:=FuncDesc, _

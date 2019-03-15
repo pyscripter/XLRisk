@@ -8,15 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Sub Workbook_AddinInstall()
-#If Mac Then
-    CreateToolBar
-#End If
   FunctionDescriptions
 End Sub
 
-Private Sub Workbook_AddinUninstall()
-#If Mac Then
-    RemoveToolBar
-#End If
-End Sub
 

@@ -15,6 +15,7 @@ End Sub
 Sub RibbonShowOptions(control As IRibbonControl)
   ShowOptions
   XLRiskRibbonUI.InvalidateControl "ComboIterations"
+  XLRiskRibbonUI.InvalidateControl "BtnSamples"
 End Sub
 
 'Callback for BtnSetup getEnabled

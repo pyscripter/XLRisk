@@ -23,8 +23,10 @@ Private Sub btnOK_Click()
     XLRisk.Range("Seed") = CDbl(tbSeed.text)
     XLRisk.Range("Iterations") = CInt(cbIterations.text)
     XLRisk.Range("ScreenUpdate") = cbScreenUpdate.Value
-    ProduceRandomSample = cbRandomSamples.Value
-    RandomSampleChanged
+    If ProduceRandomSample <> cbRandomSamples.Value Then
+        ProduceRandomSample = cbRandomSamples.Value
+        Application.Calculate
+    End If
     
     Unload Me
 End Sub
