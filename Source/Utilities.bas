@@ -47,7 +47,7 @@ Public Function InputCells() As Variant
     ReDim Result(Coll.Count, 2)
     For I = 1 To Coll.Count
       Set Cell = Coll(I)
-      Result(I, 1) = "'" & Cell.Parent.Name & "'!" & Cell.Address
+      Result(I, 1) = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
       Result(I, 2) = Right(Cell.Formula, Len(Cell.Formula) - 1)
     Next I
     
@@ -88,3 +88,11 @@ Sub ThickBorders(R As Range)
         R.Borders(xlEdgeRight).Weight = xlMedium
     End With
 End Sub
+
+Function QuoteIfNeeded(S As String) As String
+    If InStr(S, " ") > 0 Then
+        QuoteIfNeeded = "'" & S & "'"
+    Else
+        QuoteIfNeeded = S
+    End If
+End Function

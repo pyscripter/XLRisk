@@ -118,6 +118,8 @@ Public Sub Simulate()
     OutSheet.Range("A3").CurrentRegion.Columns.AutoFit
     ' Produce Statistics
     ProduceStatistics Iterations, RiskOutputs, OutSheet
+    ' Calculate before producing the graphs
+    Application.Calculate
     ' Produce Cumulative Distributions
     ProduceCumulativeDistributions Iterations, RiskOutputs, OutSheet
     ' Produce histograms only if Excel version > 16
@@ -153,7 +155,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     '  Setup risk inputs
     Set Curr = WS.Range("B2")
     For Each Cell In RiskInputs
-        Curr = "'" & Cell.Parent.Name & "'!" & Cell.Address
+        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
         Curr.Offset(1, 0) = Right(Cell.Formula, Len(Cell.Formula) - 1)
         Set Curr = Curr.Offset(0, 1)
     Next Cell
@@ -169,7 +171,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Curr.Offset(2).Name = "OutputResults"
     For I = 1 To RiskOutputs.Count
         Set Cell = RiskOutputs(I)(2)
-        Curr = "'" & Cell.Parent.Name & "'!" & Cell.Address
+        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
         Curr.Offset(1, 0) = RiskOutputs(I)(1)
         Set Curr = Curr.Offset(0, 1)
     Next I
@@ -186,7 +188,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Curr.Offset(2, -1).Name = "SimStats"
     For I = 1 To RiskOutputs.Count
         Set Cell = RiskOutputs(I)(2)
-        Curr = "'" & Cell.Parent.Name & "'!" & Cell.Address
+        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
         Curr.Offset(1, 0) = RiskOutputs(I)(1)
         Set Curr = Curr.Offset(0, 1)
     Next I
@@ -285,14 +287,14 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
     ThickBorders Cell.Offset(37, 1)
     Cell.Offset(38) = "Output Name:"
     Address = Range(Cell.Offset(-2, 1), Cell.Offset(-1, RiskOutputs.Count)).Address
-    Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2)"
+    Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2,0)"
     Cell.Offset(39) = "Value:"
     Cell.Offset(39, 1) = Cell.Offset(16, 1) '57th Percentile
     ThickBorders Cell.Offset(39, 1)
     Cell.Offset(40) = "Result:"
     Address = Range(Cell.Offset(-2, 1), Cell.Offset(-2, RiskOutputs.Count)).Address
     Cell.Offset(40, 1) = "=PERCENTRANK.INC(OFFSET(" & FirstOutput.Address & ",0,MATCH(" & Cell.Offset(37, 1).Address _
-        & "," & Address & ")-1)," & Cell.Offset(39, 1).Address & ")"
+        & "," & Address & ",0)-1)," & Cell.Offset(39, 1).Address & ")"
     Cell.Offset(40, 1).NumberFormat = "0.00%"
     Range(Cell.Offset(37), Cell.Offset(40)).HorizontalAlignment = xlRight
     With Cell.Offset(37, 1).Validation
@@ -329,14 +331,16 @@ Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collect
             .ChartType = xlXYScatterSmooth
             .HasLegend = False
             Set Source = .SeriesCollection.NewSeries
-            Source.XValues = Percentiles.Columns(1)
-            Source.Values = Percentiles.Columns(I + 1)
-            .Axes(xlCategory).MaximumScale = 1
-            .Axes(xlValue).MinimumScale = WorksheetFunction.RoundDown(Percentiles.Cells(1, I + 1), 0)
-            .Axes(xlValue).MaximumScale = WorksheetFunction.RoundUp(Percentiles.Cells(21, I + 1), 0)
+            Source.Values = Percentiles.Columns(1)
+            Source.XValues = Percentiles.Columns(I + 1)
+            .Axes(xlValue).MaximumScale = 1
+            If Percentiles.Cells(1, I + 1) > 0 Then
+                .Axes(xlCategory).MinimumScale = WorksheetFunction.RoundDown(Percentiles.Cells(1, I + 1), 0)
+            End If
+            '.Axes(xlCategory).MaximumScale = WorksheetFunction.RoundUp(Percentiles.Cells(21, I + 1), 0)
            .SetElement (msoElementChartTitleAboveChart)
            Set Cell = RiskOutputs(I)(2)
-           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I)(1) & " (" & "'" & Cell.Parent.Name & "'!" & Cell.Address & ")"
+           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I)(1) & " (" & QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
@@ -367,7 +371,7 @@ Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet
         Set Cell = RiskOutputs(I)(2)
         With NewChart
            .SetElement (msoElementChartTitleAboveChart)
-           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & "'" & Cell.Parent.Name & "'!" & Cell.Address & ")"
+           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
