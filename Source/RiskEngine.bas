@@ -260,6 +260,32 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
         Perc = Perc + 5
     Next PCount
     If Count > 1 Then Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, 1)).Copy Range(Cell.Offset(15, 2), Cell.Offset(15 + 20, Count))
+    ' Percent Rank
+    Cell.Offset(36) = "Percent Rank"
+    Cell.Offset(37) = "Output Cell:"
+    Cell.Offset(37, 1) = Cell.Offset(-2, 1)
+    ThickBorders Cell.Offset(37, 1)
+    Cell.Offset(38) = "Output Name:"
+    Address = Range(Cell.Offset(-2, 1), Cell.Offset(-1, RiskOutputs.Count)).Address
+    Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2)"
+    Cell.Offset(39) = "Value:"
+    Cell.Offset(39, 1) = Cell.Offset(16, 1) '57th Percentile
+    ThickBorders Cell.Offset(39, 1)
+    Cell.Offset(40) = "Result:"
+    Address = Range(Cell.Offset(-2, 1), Cell.Offset(-2, RiskOutputs.Count)).Address
+    Cell.Offset(40, 1) = "=PERCENTRANK.INC(OFFSET(" & FirstOutput.Address & ",0,MATCH(" & Cell.Offset(37, 1).Address _
+        & "," & Address & ")-1)," & Cell.Offset(39, 1).Address & ")"
+    Cell.Offset(40, 1).NumberFormat = "0.00%"
+    Range(Cell.Offset(37), Cell.Offset(40)).HorizontalAlignment = xlRight
+    With Cell.Offset(37, 1).Validation
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
+        xlBetween, Formula1:="=" & Address
+        .IgnoreBlank = True
+        .InCellDropdown = True
+        .InputTitle = "Select Output Cell"
+        .ShowInput = True
+        .ShowError = True
+    End With
     Cell.CurrentRegion.Columns.AutoFit
 End Sub
 

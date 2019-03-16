@@ -76,3 +76,15 @@ Sub CollectRiskOutputs(Coll As Collection)
 End Sub
 
 
+Sub ThickBorders(R As Range)
+    With R
+        R.Borders(xlEdgeTop).LineStyle = xlContinuous
+        R.Borders(xlEdgeTop).Weight = xlMedium
+        R.Borders(xlEdgeBottom).LineStyle = xlContinuous
+        R.Borders(xlEdgeBottom).Weight = xlMedium
+        R.Borders(xlEdgeLeft).LineStyle = xlContinuous
+        R.Borders(xlEdgeLeft).Weight = xlMedium
+        R.Borders(xlEdgeRight).LineStyle = xlContinuous
+        R.Borders(xlEdgeRight).Weight = xlMedium
+    End With
+End Sub
