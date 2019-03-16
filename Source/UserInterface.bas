@@ -124,14 +124,6 @@ Sub StopSim()
     UserStopped = True
 End Sub
 
-
-Sub ShowSamples()
-' Action for the ShowSamples command button
-    ProduceRandomSample = Not ProduceRandomSample
-    RandomSampleChanged
-End Sub
-
-
 Sub AddOutput()
 ' Action for the AddOutput command button
     Dim Name As String
