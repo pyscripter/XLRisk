@@ -256,7 +256,7 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
         Cell.Offset(14 + PCount) = Perc / 100
         Cell.Offset(14 + PCount).NumberFormat = "0%"
         Cell.Offset(14 + PCount).HorizontalAlignment = xlRight
-        Cell.Offset(14 + PCount, 1).Formula = "=PERCENTILE.INC(" & Address & "," & CStr(Perc) & "%)"
+        Cell.Offset(14 + PCount, 1).Formula = "=PERCENTILE.INC(" & Address & "," & Cell.Offset(14 + PCount).Address(True, True) & ")"
         Perc = Perc + 5
     Next PCount
     If Count > 1 Then Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, 1)).Copy Range(Cell.Offset(15, 2), Cell.Offset(15 + 20, Count))
