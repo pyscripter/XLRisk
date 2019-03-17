@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} AboutBox 
    Caption         =   "About XLRisk"
-   ClientHeight    =   2424
+   ClientHeight    =   2724
    ClientLeft      =   96
    ClientTop       =   432
    ClientWidth     =   4356
@@ -13,6 +13,12 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+Const XLRiskVersion = "0.80"
+
 Private Sub btnOK_Click()
     Unload Me
+End Sub
+
+Private Sub UserForm_Initialize()
+    lblVersionNumber.Caption = XLRiskVersion
 End Sub
