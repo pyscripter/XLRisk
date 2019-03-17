@@ -364,7 +364,7 @@ Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet
     For I = 1 To RiskOutputs.Count
         ' Range needs to be selected
         'https://stackoverflow.com/questions/37912746/vba-why-xlhistogram-does-not-work
-        FirstOutput.Select
+        FirstOutput.Offset(0, I - 1).Select
         Set ChartShape = ActiveSheet.Shapes.AddChart2(-1, xlHistogram, R.Left, R.Top, R.Width, R.Height)
         Set NewChart = ChartShape.Chart
         

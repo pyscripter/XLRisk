@@ -9,12 +9,10 @@ Public ProduceRandomSample As Boolean
 Public Function RiskFunctionList()
 ' Returns a list of risk functions
 ' Needs to be updated as new risk functions are added
-    RiskFunctionList = Array("RiskUniform", "RiskNormal", "RiskTriang")
+    RiskFunctionList = Array("RiskUniform", "RiskNormal", "RiskTriang", "RiskBeta", "RiskPert")
 End Function
 
 Public Function RiskUniform(Min As Double, Max As Double)
-Attribute RiskUniform.VB_Description = "Generate random sample from a uniform destribution"
-Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Uniform distribution
     Application.Volatile
     
@@ -31,10 +29,7 @@ Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-
 Public Function RiskNormal(Mean As Double, StDev As Double)
-Attribute RiskNormal.VB_Description = "Generate random sample from a normal destribution"
-Attribute RiskNormal.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Normal distribution
     Application.Volatile
     
@@ -46,13 +41,13 @@ Attribute RiskNormal.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Function RiskTriang(Min As Double, Mode As Double, Max As Double)
-'  Random Sample from a Normal distribution
+'  Random Sample from a Triangular distribution
 '  See https://en.wikipedia.org/wiki/Triangular_distribution
     Dim LowerRange As Double, HigherRange As Double, TotalRange As Double, CumulativeProb As Double
     Application.Volatile
     
     'Error checking
-    If (Mode < Min) Or (Max < Mode) Then
+    If (Mode <= Min) Or (Max <= Mode) Then
       RiskTriang = CVErr(xlErrValue)
       Exit Function
     End If
@@ -72,6 +67,41 @@ Function RiskTriang(Min As Double, Mode As Double, Max As Double)
     End If
 End Function
 
+Function RiskBeta(alpha As Double, beta As Double, Optional A As Double = 0, Optional B As Double = 1)
+'  Random Sample from a Beta distribution
+    Application.Volatile
+    
+    'Error checking
+    If (B <= A) Then
+      RiskBeta = CVErr(xlErrValue)
+      Exit Function
+    End If
+    
+    If ProduceRandomSample Then
+        RiskBeta = WorksheetFunction.Beta_Inv(Rnd(), alpha, beta, A, B)
+    Else
+        RiskBeta = A + (alpha / (alpha + beta)) * (B - A)
+    End If
+End Function
+
+Function RiskPert(Min As Double, Mode As Double, Max As Double)
+'  Random Sample from a Pert distribution a special case of the Beta distribution
+'  A smoother version of the triangular distribution
+'  See https://www.coursera.org/lecture/excel-vba-for-creative-problem-solving-part-3-projects/the-beta-pert-distribution-GJVsK
+    Dim alpha As Double, beta As Double
+    Application.Volatile
+    
+    'Error checking
+    If (Mode <= Min) Or (Max <= Mode) Then
+      RiskPert = CVErr(xlErrValue)
+      Exit Function
+    End If
+    
+    ' Reparameterize the RiskBeta distribution as per above link
+    alpha = (4 * Mode + Max - 5 * Min) / (Max - Min)
+    beta = (5 * Max - Min - 4 * Mode) / (Max - Min)
+    RiskPert = RiskBeta(alpha, beta, Min, Max)
+End Function
 
 Sub CreateFunctionDescription(FuncName, FuncDesc, ArgDesc)
 '   Creates a description for a function and its arguments
@@ -84,16 +114,18 @@ Sub CreateFunctionDescription(FuncName, FuncDesc, ArgDesc)
       ArgumentDescriptions:=ArgDesc)
 End Sub
 
-
 Sub FunctionDescriptions()
   Call CreateFunctionDescription("RiskUniform", "Generate random sample from a uniform destribution", _
     Array("Minimum value", "Maximum Value"))
   Call CreateFunctionDescription("RiskNormal", "Generate random sample from a normal destribution", _
     Array("Mean", "Standard Deviation"))
   Call CreateFunctionDescription("RiskTriang", "Generate random sample from a triangular destribution", _
-    Array("Minimum", "Mode", "Max"))
+    Array("Minimum value", "Mode", "Maximum value"))
+  Call CreateFunctionDescription("RiskBeta", "Generate random sample from a beta destribution", _
+    Array("Shape parameter", "Shape parameter", "Optional minimum - 0 if omitted", "Optional maximum - 1 if omitted"))
+  Call CreateFunctionDescription("RiskPert", "Generate random sample from a PERT destribution", _
+    Array("Minimum value", "Mode", "Maximum value"))
 End Sub
-
 
 Public Function RndM(Optional ByVal Number As Long) As Double
 ' Wichman-Hill Pseudo Random Number Generator: an alternative for VB Rnd() function
