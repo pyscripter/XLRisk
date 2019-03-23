@@ -155,7 +155,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     '  Setup risk inputs
     Set Curr = WS.Range("B2")
     For Each Cell In RiskInputs
-        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
+        Curr = NameOrAddress(Cell)
         Curr.Offset(1, 0) = Right(Cell.Formula, Len(Cell.Formula) - 1)
         Set Curr = Curr.Offset(0, 1)
     Next Cell

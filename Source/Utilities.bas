@@ -96,3 +96,10 @@ Function QuoteIfNeeded(S As String) As String
         QuoteIfNeeded = S
     End If
 End Function
+
+Function NameOrAddress(R As Range) As String
+    On Error Resume Next
+    NameOrAddress = R.Name.Name
+    If NameOrAddress = "" Then NameOrAddress = QuoteIfNeeded(R.Parent.Name) & "!" & R.Address
+End Function
+
