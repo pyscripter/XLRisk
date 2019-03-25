@@ -9,7 +9,7 @@ Public ProduceRandomSample As Boolean
 Public Function RiskFunctionList()
 ' Returns a list of risk functions
 ' Needs to be updated as new risk functions are added
-    RiskFunctionList = Array("RiskUniform", "RiskNormal", "RiskTriang", "RiskBeta", "RiskPert")
+    RiskFunctionList = Array("RiskUniform", "RiskNormal", "RiskTriang", "RiskBeta", "RiskPert", "RiskLogNorm", "RiskDUniform")
 End Function
 
 Public Function RiskUniform(Min As Double, Max As Double)
@@ -29,6 +29,21 @@ Public Function RiskUniform(Min As Double, Max As Double)
     End If
 End Function
 
+Public Function RiskDUniform(Values As Variant)
+'  Random Sample from a Discrete Uniform distribution
+'  Values can be a range or an array of values
+    Dim Count As Integer
+    Application.Volatile
+    
+    Count = WorksheetFunction.Count(Values)
+
+    If ProduceRandomSample Then
+        RiskDUniform = Values(Int(Rnd() * Count) + 1)
+    Else
+        RiskDUniform = WorksheetFunction.Sum(Values) / Count
+    End If
+End Function
+
 Public Function RiskNormal(Mean As Double, StDev As Double)
 '  Random Sample from a Normal distribution
     Application.Volatile
@@ -37,6 +52,17 @@ Public Function RiskNormal(Mean As Double, StDev As Double)
         RiskNormal = WorksheetFunction.Norm_Inv(Rnd(), Mean, StDev)
     Else
         RiskNormal = Mean
+    End If
+End Function
+
+Public Function RiskLogNorm(Mean As Double, StDev As Double)
+'  Random Sample from a Log Normal distribution
+    Application.Volatile
+    
+    If ProduceRandomSample Then
+        RiskLogNorm = WorksheetFunction.LogNorm_Inv(Rnd(), Mean, StDev)
+    Else
+        RiskLogNorm = Exp(Mean + 0.5 * StDev ^ 2)
     End If
 End Function
 
@@ -125,6 +151,10 @@ Sub FunctionDescriptions()
     Array("Shape parameter", "Shape parameter", "Optional minimum - 0 if omitted", "Optional maximum - 1 if omitted"))
   Call CreateFunctionDescription("RiskPert", "Generate random sample from a PERT destribution", _
     Array("Minimum value", "Mode", "Maximum value"))
+  Call CreateFunctionDescription("RiskLogNorm", "Generate random sample from a lognormal destribution", _
+    Array("Mean of Ln(X)", "Standard Deviation of Ln(X)"))
+  Call CreateFunctionDescription("RiskDUniform", "Generate random sample from a uniform discrete destribution", _
+    Array("Range or array of values"))
 End Sub
 
 Public Function RndM(Optional ByVal Number As Long) As Double
