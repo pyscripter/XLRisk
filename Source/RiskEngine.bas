@@ -51,12 +51,12 @@ Public Sub Simulate()
     Dim OldProduceRandomSample As Boolean
     Dim Seed As Double
     
+    ' Save ProduceRandomSample
+    OldProduceRandomSample = ProduceRandomSample
+    
     ' Save Calculation Mode
     AppCalculation = Application.Calculation
     Application.Calculation = xlCalculationManual
-    
-    ' Save ProduceRandomSample
-    OldProduceRandomSample = ProduceRandomSample
     
     On Error GoTo RestoreExcel
         
@@ -98,6 +98,8 @@ Public Sub Simulate()
     'Perform simulation
     UserStopped = False
     ProduceRandomSample = True
+    Application.CalculateFull
+    
     For Iter = 1 To Iterations
         If SimError Then
             SimError = False
@@ -126,15 +128,15 @@ Public Sub Simulate()
     If Val(Application.Version) >= 16 Then ProduceHistograms Iterations, RiskOutputs, OutSheet
     OutSheet.Activate
 RestoreExcel:
+    'Restore ProduceRandomSample
+    ProduceRandomSample = OldProduceRandomSample
+    
     'Restore Calculation Mode
     Application.Calculation = AppCalculation
-    Application.Calculate
+    Application.CalculateFull
     
     ' Restore Status Bar
     Application.StatusBar = False
-    
-    'Restore ProduceRandomSample
-    ProduceRandomSample = OldProduceRandomSample
     
     Application.ScreenUpdating = True
     Application.Cursor = xlDefault

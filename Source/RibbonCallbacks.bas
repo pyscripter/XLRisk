@@ -30,7 +30,7 @@ End Sub
 'Callback for BtnSamples onAction
 Sub RibbonShowSamples(control As IRibbonControl, pressed As Boolean)
   ProduceRandomSample = Not ProduceRandomSample
-  Application.Calculate
+  Application.CalculateFull
 End Sub
 
 'Callback for BtnSamples getPressed

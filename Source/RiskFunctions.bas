@@ -14,7 +14,7 @@ End Function
 
 Public Function RiskUniform(Min As Double, Max As Double)
 '  Random Sample from a Uniform distribution
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     'Error checking
     If Max < Min Then
@@ -33,7 +33,7 @@ Public Function RiskDUniform(Values As Variant)
 '  Random Sample from a Discrete Uniform distribution
 '  Values can be a range or an array of values
     Dim Count As Integer
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     Count = WorksheetFunction.Count(Values)
 
@@ -46,7 +46,7 @@ End Function
 
 Public Function RiskNormal(Mean As Double, StDev As Double)
 '  Random Sample from a Normal distribution
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     If ProduceRandomSample Then
         RiskNormal = WorksheetFunction.Norm_Inv(Rnd(), Mean, StDev)
@@ -57,7 +57,7 @@ End Function
 
 Public Function RiskLogNorm(Mean As Double, StDev As Double)
 '  Random Sample from a Log Normal distribution
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     If ProduceRandomSample Then
         RiskLogNorm = WorksheetFunction.LogNorm_Inv(Rnd(), Mean, StDev)
@@ -70,7 +70,7 @@ Function RiskTriang(Min As Double, Mode As Double, Max As Double)
 '  Random Sample from a Triangular distribution
 '  See https://en.wikipedia.org/wiki/Triangular_distribution
     Dim LowerRange As Double, HigherRange As Double, TotalRange As Double, CumulativeProb As Double
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     'Error checking
     If (Mode <= Min) Or (Max <= Mode) Then
@@ -95,7 +95,7 @@ End Function
 
 Function RiskBeta(alpha As Double, beta As Double, Optional A As Double = 0, Optional B As Double = 1)
 '  Random Sample from a Beta distribution
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     'Error checking
     If (B <= A) Then
@@ -115,7 +115,7 @@ Function RiskPert(Min As Double, Mode As Double, Max As Double)
 '  A smoother version of the triangular distribution
 '  See https://www.coursera.org/lecture/excel-vba-for-creative-problem-solving-part-3-projects/the-beta-pert-distribution-GJVsK
     Dim alpha As Double, beta As Double
-    Application.Volatile
+    Application.Volatile (ProduceRandomSample)
     
     'Error checking
     If (Mode <= Min) Or (Max <= Mode) Then
