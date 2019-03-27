@@ -85,6 +85,11 @@ Public Sub Simulate()
         
     InitialiseResults RiskInputs, RiskOutputs, OutSheet
     
+    'Perform simulation
+    UserStopped = False
+    ProduceRandomSample = True
+    Application.CalculateFull
+    
     'Randomize
     Seed = XLRisk.Range("Seed")
     If Seed <> 0 Then
@@ -94,11 +99,6 @@ Public Sub Simulate()
     Else
         Randomize
     End If
-    
-    'Perform simulation
-    UserStopped = False
-    ProduceRandomSample = True
-    Application.CalculateFull
     
     For Iter = 1 To Iterations
         If SimError Then
@@ -229,14 +229,22 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     End If
 End Sub
 
-Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String, Count As Integer)
+Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String)
     Dim I As Integer
     
     Cell = StatName
     Cell.Offset(0, 1).Formula = "=" & StatFormula & "(" & Address & ")"
 End Sub
 
+Sub StatAggregateHelper(Cell As Range, StatName As String, FormulaCode As Integer, Address As String)
+    Dim I As Integer
+    
+    Cell = StatName
+    Cell.Offset(0, 1).Formula = "=AGGREGATE(" & CStr(FormulaCode) & ",6," & Address & ")"
+End Sub
+
 Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
+'  Use the Aggregate Excel function so that stats can be calculated even if the outputs contain a few errors
     Dim FirstOutput As Range
     Dim Cell As Range
     Dim I As Integer
@@ -249,20 +257,20 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
     Set FirstOutput = OutSheet.Range(Cell, Cell.Offset(Iterations - 1))
     Set Cell = OutSheet.Range("SimStats")
     
-    Address = FirstOutput.Address(False, False)
+    Address = FirstOutput.Address(True, False)
     Count = RiskOutputs.Count
-    StatHelper Cell, "Mean", "Average", Address, Count
-    StatHelper Cell.Offset(1), "Median", "MEDIAN", Address, Count
-    StatHelper Cell.Offset(2), "Mode", "MODE.SNGL", Address, Count
-    StatHelper Cell.Offset(3), "Std. Deviation", "STDEV.S", Address, Count
-    StatHelper Cell.Offset(4), "Variance", "VAR.S", Address, Count
-    StatHelper Cell.Offset(5), "Kurtosis", "KURT", Address, Count
-    StatHelper Cell.Offset(6), "Skewness", "Skew", Address, Count
-    StatHelper Cell.Offset(7), "Minimum", "MIN", Address, Count
-    StatHelper Cell.Offset(8), "Maximum", "MAX", Address, Count
+    StatAggregateHelper Cell, "Mean", 1, Address
+    StatAggregateHelper Cell.Offset(1), "Median", 12, Address
+    StatAggregateHelper Cell.Offset(2), "Mode", 13, Address
+    StatAggregateHelper Cell.Offset(3), "Std. Deviation", 7, Address
+    StatAggregateHelper Cell.Offset(4), "Variance", 10, Address
+    StatHelper Cell.Offset(5), "Kurtosis", "KURT", Address
+    StatHelper Cell.Offset(6), "Skewness", "Skew", Address
+    StatAggregateHelper Cell.Offset(7), "Minimum", 5, Address
+    StatAggregateHelper Cell.Offset(8), "Maximum", 4, Address
     Cell.Offset(9) = "Range"
     Cell.Offset(9, 1).Formula = "=" & Cell.Offset(8, 1).Address(False, False) & "-" & Cell.Offset(7, 1).Address(False, False)
-    StatHelper Cell.Offset(10), "Count", "Count", Address, Count
+    StatHelper Cell.Offset(10), "Count", "Count", Address
     Cell.Offset(11) = "Error Count"
     Cell.Offset(11, 1).FormulaArray = "=COUNT(IF(ISERROR(" & Address & "), 1, """"))"
     Cell.Offset(12) = "Std. Error"
@@ -277,11 +285,11 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
         Cell.Offset(14 + PCount) = Perc / 100
         Cell.Offset(14 + PCount).NumberFormat = "0%"
         Cell.Offset(14 + PCount).HorizontalAlignment = xlRight
-        Cell.Offset(14 + PCount, 1).Formula = "=PERCENTILE.INC(" & Address & "," & Cell.Offset(14 + PCount).Address(True, True) & ")"
         Perc = Perc + 5
     Next PCount
+    Cell.Offset(15, 1).Formula = "=AGGREGATE(16,6," & Address & "," & Cell.Offset(15).Address(False, True) & ")"
     Range(Cell.Offset(15), Cell.Offset(15 + 20, RiskOutputs.Count)).Name = "Percentiles"
-    If Count > 1 Then Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, 1)).Copy Range(Cell.Offset(15, 2), Cell.Offset(15 + 20, Count))
+    Cell.Offset(15, 1).Copy Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, Count))
     ' Percent Rank
     Cell.Offset(36) = "Percent Rank"
     Cell.Offset(37) = "Output Cell:"
@@ -356,6 +364,8 @@ Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet
     Dim R As Range
     Dim ChartShape As Shape
     Dim NewChart As Chart
+    
+    On Error Resume Next
     
     Set Cell = OutSheet.Range("OutputResults")
     Set FirstOutput = OutSheet.Range(Cell, Cell.Offset(Iterations - 1))
