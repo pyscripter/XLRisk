@@ -194,7 +194,7 @@ Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
     If ProduceRandomSample Then
         RndValue = Rnd()
         If RndValue <= YValues(1) Then
-            RiskCumul = MinValue + XValues(1) * RndValue / YValues(1)
+            RiskCumul = MinValue + (XValues(1) - MinValue) * RndValue / YValues(1)
         ElseIf RndValue > YValues(Count) Then
             RiskCumul = XValues(Count) + (MaxValue - XValues(Count)) * _
                 (RndValue - YValues(Count)) / (1 - YValues(Count))
