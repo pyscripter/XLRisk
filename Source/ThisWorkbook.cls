@@ -8,7 +8,7 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = True
 Private Sub Workbook_AddinInstall()
-  FunctionDescriptions
+  Call FunctionDescriptions
 End Sub
 
 
