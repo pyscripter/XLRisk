@@ -2,8 +2,8 @@ VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} AboutBox 
    Caption         =   "About XLRisk"
    ClientHeight    =   2720
-   ClientLeft      =   100
-   ClientTop       =   430
+   ClientLeft      =   110
+   ClientTop       =   440
    ClientWidth     =   4350
    OleObjectBlob   =   "AboutBox.frx":0000
    StartUpPosition =   1  'CenterOwner

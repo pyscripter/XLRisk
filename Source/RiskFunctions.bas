@@ -150,9 +150,11 @@ Attribute RiskCumul.VB_Description = "Generate random sample from a cumulative d
 Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Discrete Uniform distribution
 '  Values can be a range or an array of values
-    Dim I, Count As Integer
+    Dim I As Integer
+    Dim Count As Integer
     Dim ParamError As Boolean
-    Dim RndValue, Slope As Double
+    Dim RndValue As Double
+    Dim Slope As Double
     
     Application.Volatile (ProduceRandomSample)
     

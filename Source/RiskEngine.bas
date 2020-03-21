@@ -13,27 +13,32 @@ Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs A
     Dim R As Range
     Dim Cell As Range
     Dim Item As Variant
+    Dim Results() As Variant
+    Dim I As Integer
       
     On Error GoTo SSError
         
     'Recalculate
     Application.Calculate
+    ReDim Results(1 + RiskInputs.Count + RiskOutputs.Count)
       
-    'Produce Output
-    Set R = OutSheet.Range("A3").Offset(Iter)
-    R = Iter
-    Set R = R.Offset(0, 1)
     ' Inputs
+    Results(1) = Iter
+    I = 2
     For Each Cell In RiskInputs
-        R = Cell
-        Set R = R.Offset(0, 1)
+        Results(I) = Cell
+        I = I + 1
     Next Cell
     
     'Outputs
     For Each Item In RiskOutputs
-        R = Item(2)
-        Set R = R.Offset(0, 1)
+        Results(I) = Item(2)
+        I = I + 1
     Next Item
+    'Produce Output
+    Set R = OutSheet.Range("A3").Offset(Iter)
+    Set R = OutSheet.Range(R, R.Offset(0, RiskInputs.Count + RiskOutputs.Count))
+    R = Results
     Exit Sub
 SSError:
       SimError = True
@@ -144,7 +149,7 @@ End Sub
 
 
 Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection, WS As Worksheet)
-    Dim ER, OutRanges, OutRange As Range
+    Dim OutRange As Range
     Dim Cell As Range
     Dim Curr As Range
     Dim I As Integer
@@ -230,15 +235,11 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
 End Sub
 
 Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String)
-    Dim I As Integer
-    
     Cell = StatName
     Cell.Offset(0, 1).Formula = "=" & StatFormula & "(" & Address & ")"
 End Sub
 
 Sub StatAggregateHelper(Cell As Range, StatName As String, FormulaCode As Integer, Address As String)
-    Dim I As Integer
-    
     Cell = StatName
     Cell.Offset(0, 1).Formula = "=AGGREGATE(" & CStr(FormulaCode) & ",6," & Address & ")"
 End Sub
@@ -247,7 +248,6 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
 '  Use the Aggregate Excel function so that stats can be calculated even if the outputs contain a few errors
     Dim FirstOutput As Range
     Dim Cell As Range
-    Dim I As Integer
     Dim Address As String
     Dim Count As Integer
     Dim Perc As Integer
