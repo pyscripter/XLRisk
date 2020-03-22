@@ -178,7 +178,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Curr.Offset(2).Name = "OutputResults"
     For I = 1 To RiskOutputs.Count
         Set Cell = RiskOutputs(I)(2)
-        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
+        Curr = AddressWithSheet(Cell)
         Curr.Offset(1, 0) = RiskOutputs(I)(1)
         Set Curr = Curr.Offset(0, 1)
     Next I
@@ -195,7 +195,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Curr.Offset(2, -1).Name = "SimStats"
     For I = 1 To RiskOutputs.Count
         Set Cell = RiskOutputs(I)(2)
-        Curr = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
+        Curr = AddressWithSheet(Cell)
         Curr.Offset(1, 0) = RiskOutputs(I)(1)
         Set Curr = Curr.Offset(0, 1)
     Next I
@@ -350,7 +350,7 @@ Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collect
             '.Axes(xlCategory).MaximumScale = WorksheetFunction.RoundUp(Percentiles.Cells(21, I + 1), 0)
            .SetElement (msoElementChartTitleAboveChart)
            Set Cell = RiskOutputs(I)(2)
-           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I)(1) & " (" & QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address & ")"
+           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I)(1) & " (" & AddressWithSheet(Cell) & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
@@ -383,7 +383,7 @@ Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet
         Set Cell = RiskOutputs(I)(2)
         With NewChart
            .SetElement (msoElementChartTitleAboveChart)
-           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address & ")"
+           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & AddressWithSheet(Cell) & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I

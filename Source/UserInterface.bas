@@ -101,7 +101,7 @@ Sub ShowRiskInputs(XLRiskSheet As Worksheet)
     CollectRiskInputs Coll
     For Each Cell In Coll
         Set R = R.Offset(1)
-        R = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
+        R = AddressWithSheet(Cell)
         R.Offset(0, 1) = Right(Cell.Formula, Len(Cell.Formula) - 1)
     Next Cell
     R.CurrentRegion.Columns.AutoFit
@@ -134,7 +134,7 @@ Sub AddOutput()
     Set XLRisk = SetUpXLRisk
     Set R = XLRisk.Range("RiskOutputs").CurrentRegion
     Set R = R.Rows(R.Rows.Count).Offset(1) 'Offset the last row
-    R.Cells(1, 1).Value = "'" & QuoteIfNeeded(Selection.Parent.Name) & "!" & Selection.Address
+    R.Cells(1, 1).Value = "'" & AddressWithSheet(Selection)
     R.Cells(1, 2) = Name
     XLRisk.Range("RiskOutputs").CurrentRegion.Columns.AutoFit
 End Sub

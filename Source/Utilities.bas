@@ -5,6 +5,7 @@ Option Base 1
 Sub CollectRiskInputs(Coll As Collection)
 '  Adds all risk inputs of the ActiveWorkbook (cell with risk formulas) to Coll
 '  On Exit The collection contains the risk input cells
+'TODO Raise an error if there are more than one risk functions in the same cell
     Dim Sht As Worksheet
     Dim Formulas As Range
     Dim Cell As Range
@@ -47,7 +48,7 @@ Public Function InputCells() As Variant
     ReDim Result(Coll.Count, 2)
     For I = 1 To Coll.Count
       Set Cell = Coll(I)
-      Result(I, 1) = QuoteIfNeeded(Cell.Parent.Name) & "!" & Cell.Address
+      Result(I, 1) = AddressWithSheet(Cell)
       Result(I, 2) = Right(Cell.Formula, Len(Cell.Formula) - 1)
     Next I
     
@@ -97,9 +98,14 @@ Function QuoteIfNeeded(S As String) As String
     End If
 End Function
 
+Function AddressWithSheet(R As Range) As String
+    AddressWithSheet = QuoteIfNeeded(R.Parent.Name) & "!" & R.Address
+End Function
+
+
 Function NameOrAddress(R As Range) As String
     On Error Resume Next
     NameOrAddress = R.Name.Name
-    If Len(NameOrAddress) = 0 Then NameOrAddress = QuoteIfNeeded(R.Parent.Name) & "!" & R.Address
+    If Len(NameOrAddress) = 0 Then NameOrAddress = AddressWithSheet(R)
 End Function
 
