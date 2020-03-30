@@ -10,7 +10,6 @@ Private Const ChartHeight = 22 'rows
 Private Const ChartWidth = 10 'columns
 
 Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection, OutSheet As Worksheet)
-    Dim R As Range
     Dim Cell As Range
     Dim Item As Variant
     Dim Results() As Variant
@@ -36,9 +35,7 @@ Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs A
         I = I + 1
     Next Item
     'Produce Output
-    Set R = OutSheet.Range("A3").Offset(Iter)
-    Set R = OutSheet.Range(R, R.Offset(0, RiskInputs.Count + RiskOutputs.Count))
-    R = Results
+    OutSheet.Cells(Iter + 3, 1).Resize(1, 1 + RiskInputs.Count + RiskOutputs.Count) = Results
     Exit Sub
 SSError:
       SimError = True
@@ -149,7 +146,6 @@ End Sub
 
 
 Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection, WS As Worksheet)
-    Dim OutRange As Range
     Dim Cell As Range
     Dim Curr As Range
     Dim I As Integer
