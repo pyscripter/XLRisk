@@ -69,14 +69,14 @@ Public Sub Simulate()
     
     Iterations = XLRisk.Range("Iterations")
     
-    Set OutSheet = CreateOutputSheet
-    
     Set RiskInputs = New Collection
     CollectRiskInputs RiskInputs
     If RiskInputs.Count = 0 Then
         MsgBox "No risk inputs defined", Title:="XLRisk simulation error"
         GoTo RestoreExcel
     End If
+    
+    If OneRiskFunctionPerCell(RiskInputs) Then GoTo RestoreExcel
     
     Set RiskOutputs = New Collection
     CollectRiskOutputs RiskOutputs
@@ -85,6 +85,8 @@ Public Sub Simulate()
         GoTo RestoreExcel
     End If
         
+    Set OutSheet = CreateOutputSheet
+    
     InitialiseResults RiskInputs, RiskOutputs, OutSheet
     
     'Perform simulation

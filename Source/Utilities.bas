@@ -5,7 +5,6 @@ Option Base 1
 Sub CollectRiskInputs(Coll As Collection)
 '  Adds all risk inputs of the ActiveWorkbook (cell with risk formulas) to Coll
 '  On Exit The collection contains the risk input cells
-'TODO Raise an error if there are more than one risk functions in the same cell
     Dim Sht As Worksheet
     Dim Formulas As Range
     Dim Cell As Range
@@ -34,6 +33,36 @@ Sub CollectRiskInputs(Coll As Collection)
     Next Sht
 End Sub
 
+Public Function OneRiskFunctionPerCell(Coll As Collection) As Boolean
+    Dim Cell As Range
+    Dim FunctionList As Variant
+    Dim RiskFunction As Variant
+    Dim Count As Integer
+    Dim Pos As Integer
+    
+    OneRiskFunctionPerCell = False
+    FunctionList = RiskFunctionList()
+    For Each Cell In Coll
+        Count = 0
+        For Each RiskFunction In FunctionList
+            Pos = 1
+            Do Until Pos = 0
+                Pos = InStr(Pos, Cell.Formula, RiskFunction, vbTextCompare)
+                If Pos > 0 Then
+                    Count = Count + 1
+                    Pos = Pos + Len(RiskFunction)
+                End If
+            If Count > 1 Then
+                OneRiskFunctionPerCell = True
+                MsgBox "XLRisk allows only one risk function per cell. Cell " & AddressWithSheet(Cell) & _
+                    " contains more than one risk function", vbExclamation, _
+                    "Multiple risk functions in cell"
+                Exit Function
+            End If
+            Loop
+        Next RiskFunction
+    Next Cell
+End Function
 
 Public Function InputCells() As Variant
 ' Returns an array of cells containing input formulas in the Active Workbook
