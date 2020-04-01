@@ -1,6 +1,7 @@
 Attribute VB_Name = "UserInterface"
 Option Explicit
 
+Public UserStopped As Boolean
 
 Public Function SetUpXLRisk() As Worksheet
 '  Creates a sheet named XLRisk that contains risk settings, inputs and outputs
@@ -58,7 +59,6 @@ Public Function SetUpXLRisk() As Worksheet
     Set SetUpXLRisk = WS
 End Function
 
-
 Public Function CreateOutputSheet() As Worksheet
     Dim WB As Workbook
     Dim WS As Worksheet
@@ -87,7 +87,7 @@ Public Function CreateOutputSheet() As Worksheet
     Loop
 End Function
 
-Sub ShowRiskInputs(XLRiskSheet As Worksheet)
+Public Sub ShowRiskInputs(XLRiskSheet As Worksheet)
     ' Show RiskInputs in the XLRisk sheet
     Dim R As Range
     Dim Coll As New Collection
@@ -107,24 +107,24 @@ Sub ShowRiskInputs(XLRiskSheet As Worksheet)
     R.CurrentRegion.Columns.AutoFit
 End Sub
 
-Sub ShowOptions()
+Public Sub ShowOptions()
 ' Action for related command button
     Load XLRiskOptions
     XLRiskOptions.Show
 End Sub
 
-Sub ShowAboutBox()
+Public Sub ShowAboutBox()
 ' Action for related command button
     Load AboutBox
     AboutBox.Show
 End Sub
 
-Sub StopSim()
+Public Sub StopSim()
 ' Action for related command button
     UserStopped = True
 End Sub
 
-Sub AddOutput()
+Public Sub AddOutput()
 ' Action for the AddOutput command button
     Dim Name As String
     Dim XLRisk As Worksheet
@@ -139,7 +139,7 @@ Sub AddOutput()
     XLRisk.Range("RiskOutputs").CurrentRegion.Columns.AutoFit
 End Sub
 
-Sub ShowOutputs()
+Public Sub ShowOutputs()
 ' Action for the AddOutput menu command
     Dim XLRisk As Worksheet
     Set XLRisk = SetUpXLRisk

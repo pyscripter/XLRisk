@@ -1,33 +1,71 @@
-Attribute VB_Name = "RiskEngine"
+VERSION 1.0 CLASS
+BEGIN
+  MultiUse = -1  'True
+END
+Attribute VB_Name = "ClsSimResults"
+Attribute VB_GlobalNameSpace = False
+Attribute VB_Creatable = False
+Attribute VB_PredeclaredId = False
+Attribute VB_Exposed = False
 Option Explicit
-Option Base 1
 
-Public UserStopped As Boolean
+Private mOutSheet As Worksheet
+Private mRiskInputs As Collection
+Private mRiskOutputs As Collection
+Private mIterations As Long
+Private mSimResults() As Double
 
-Private Const ChartHeight = 22 'rows
-Private Const ChartWidth = 10 'columns
+Private Const ChartHeight As Integer = 22 'rows
+Private Const ChartWidth As Integer = 10 'columns
 
 
-Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection, WS As Worksheet)
+Private Sub Class_Initialize()
+    Set mOutSheet = CreateOutputSheet
+End Sub
+
+Public Sub Init(RiskInputs As Collection, RiskOutputs As Collection, Iterations As Long, SimResults() As Double)
+    Set mRiskInputs = RiskInputs
+    Set mRiskOutputs = RiskOutputs
+    mIterations = Iterations
+    mSimResults = SimResults
+End Sub
+
+Public Sub ProduceResults()
+    InitialiseResults
+    'Produce Output
+    mOutSheet.Cells(4, 1).Resize(mIterations, 1 + mRiskInputs.Count + mRiskOutputs.Count) = mSimResults
+    mOutSheet.Range("A3").CurrentRegion.Columns.AutoFit
+    ' Produce Statistics
+    ProduceStatistics
+    ' Calculate before producing the graphs
+    Application.Calculate
+    ' Produce Cumulative Distributions
+    ProduceCumulativeDistributions
+    ' Produce histograms only if Excel version > 16
+    If Val(Application.Version) >= 16 Then ProduceHistograms
+    mOutSheet.Activate
+End Sub
+
+Private Sub InitialiseResults()
     Dim Cell As Range
     Dim Curr As Range
     Dim RiskOutput As ClsRiskOutput
     
-    With WS
+    With mOutSheet
         .Range("B1") = "Inputs"
         .Range("A3") = "Iterations"
     End With
       
     '  Setup risk inputs
-    Set Curr = WS.Range("B2")
-    For Each Cell In RiskInputs
+    Set Curr = mOutSheet.Range("B2")
+    For Each Cell In mRiskInputs
         Curr = NameOrAddress(Cell)
         Curr.Offset(1, 0) = Right(Cell.Formula, Len(Cell.Formula) - 1)
         Set Curr = Curr.Offset(0, 1)
     Next Cell
     'Format Input
-    With Range(WS.Range("B1"), WS.Range("B1").Offset(0, RiskInputs.Count - 1))
-        If RiskInputs.Count > 1 Then .Merge
+    With mOutSheet.Range("B1").Resize(1, mRiskInputs.Count)
+        If mRiskInputs.Count > 1 Then .Merge
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
     End With
@@ -35,14 +73,14 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     '   Setup risk outputs
     Curr.Offset(-1, 0) = "Outputs"
     Curr.Offset(2).Name = "OutputResults"
-    For Each RiskOutput In RiskOutputs
+    For Each RiskOutput In mRiskOutputs
         Curr = AddressWithSheet(RiskOutput.Cell)
         Curr.Offset(1, 0) = RiskOutput.Name
         Set Curr = Curr.Offset(0, 1)
     Next RiskOutput
     'Format Output
-    With Range(WS.Range("B1").Offset(0, 1), WS.Range("B1").Offset(0, RiskOutputs.Count))
-        If RiskOutputs.Count > 1 Then .Merge
+    With mOutSheet.Range("B1").Offset(0, 1).Resize(1, mRiskOutputs.Count)
+        If mRiskOutputs.Count > 1 Then .Merge
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
     End With
@@ -51,19 +89,19 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Set Curr = Curr.Offset(0, 2)
     Curr.Offset(-1, 0) = "Simulation Statistics"
     Curr.Offset(2, -1).Name = "SimStats"
-    For Each RiskOutput In RiskOutputs
+    For Each RiskOutput In mRiskOutputs
         Curr = AddressWithSheet(RiskOutput.Cell)
         Curr.Offset(1, 0) = RiskOutput.Name
         Set Curr = Curr.Offset(0, 1)
     Next RiskOutput
     'Format Simulation Results
-    With Range(WS.Range("SimStats").Offset(-3), WS.Range("SimStats").Offset(-3, RiskOutputs.Count))
-        If RiskOutputs.Count > 1 Then .Merge
+    With mOutSheet.Range("SimStats").Offset(-3).Resize(1, mRiskOutputs.Count + 1)
+        If mRiskOutputs.Count > 1 Then .Merge
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
     End With
     
-    With WS.Range("B2").CurrentRegion
+    With mOutSheet.Range("B2").CurrentRegion
         .Columns.AutoFit
         .HorizontalAlignment = xlCenter
     End With
@@ -72,7 +110,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Set Curr = Curr.Offset(0, 1)
     Curr.Offset(-1, 0) = "Output Cumulative Distributions"
     Curr.Offset(1, 0).Name = "OutCumDist"
-    With Range(Curr.Offset(-1, 0), Curr.Offset(-1, ChartWidth - 1))
+    With Curr.Offset(-1, 0).Resize(1, ChartWidth)
         .Merge
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
@@ -83,7 +121,7 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
         Set Curr = Curr.Offset(0, ChartWidth + 1)
         Curr.Offset(-1, 0) = "Output Distributions"
         Curr.Offset(1, 0).Name = "OutDist"
-        With Range(Curr.Offset(-1, 0), Curr.Offset(-1, ChartWidth - 1))
+        With Curr.Offset(-1, 0).Resize(1, ChartWidth)
             .Merge
             .Font.Bold = True
             .HorizontalAlignment = xlCenter
@@ -91,17 +129,17 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     End If
 End Sub
 
-Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String)
+Private Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String)
     Cell = StatName
     Cell.Offset(0, 1).Formula = "=" & StatFormula & "(" & Address & ")"
 End Sub
 
-Sub StatAggregateHelper(Cell As Range, StatName As String, FormulaCode As Integer, Address As String)
+Private Sub StatAggregateHelper(Cell As Range, StatName As String, FormulaCode As Integer, Address As String)
     Cell = StatName
     Cell.Offset(0, 1).Formula = "=AGGREGATE(" & CStr(FormulaCode) & ",6," & Address & ")"
 End Sub
 
-Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
+Private Sub ProduceStatistics()
 '  Use the Aggregate Excel function so that stats can be calculated even if the outputs contain a few errors
     Dim FirstOutput As Range
     Dim Cell As Range
@@ -110,12 +148,11 @@ Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As
     Dim Perc As Integer
     Dim PCount As Integer
     
-    Set Cell = OutSheet.Range("OutputResults")
-    Set FirstOutput = OutSheet.Range(Cell, Cell.Offset(Iterations - 1))
-    Set Cell = OutSheet.Range("SimStats")
+    Set FirstOutput = mOutSheet.Range("OutputResults").Resize(mIterations, 1)
+    Set Cell = mOutSheet.Range("SimStats")
     
     Address = FirstOutput.Address(True, False)
-    Count = RiskOutputs.Count
+    Count = mRiskOutputs.Count
     StatAggregateHelper Cell, "Mean", 1, Address
     StatAggregateHelper Cell.Offset(1), "Median", 12, Address
     StatAggregateHelper Cell.Offset(2), "Mode", 13, Address
@@ -134,7 +171,7 @@ Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As
     Cell.Offset(12, 1).Formula = "=" & Cell.Offset(3, 1).Address(False, False) & "/SQRT(" & Cell.Offset(10, 1).Address(False, False) & ")"
     Cell.Offset(13) = "Confidence Level (95%)"
     Cell.Offset(13, 1).Formula = "=CONFIDENCE.T(5%," & Cell.Offset(3, 1).Address(False, False) & "," & Cell.Offset(10, 1).Address(False, False) & ")"
-    If Count > 1 Then Range(Cell.Offset(0, 1), Cell.Offset(13, 1)).Copy Range(Cell.Offset(0, 2), Cell.Offset(13, Count))
+    If Count > 1 Then Cell.Offset(0, 1).Resize(14, 1).Copy Cell.Offset(0, 2).Resize(14, Count - 1)
     'Percentiles
     Cell.Offset(14) = "Percentiles"
     Perc = 0
@@ -145,25 +182,25 @@ Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As
         Perc = Perc + 5
     Next PCount
     Cell.Offset(15, 1).Formula = "=AGGREGATE(16,6," & Address & "," & Cell.Offset(15).Address(False, True) & ")"
-    Range(Cell.Offset(15), Cell.Offset(15 + 20, RiskOutputs.Count)).Name = "Percentiles"
-    Cell.Offset(15, 1).Copy Range(Cell.Offset(15, 1), Cell.Offset(15 + 20, Count))
+    Cell.Offset(15).Resize(21, mRiskOutputs.Count + 1).Name = "Percentiles"
+    Cell.Offset(15, 1).Copy Cell.Offset(15, 1).Resize(21, Count)
     ' Percent Rank
     Cell.Offset(36) = "Percent Rank"
     Cell.Offset(37) = "Output Cell:"
-    Cell.Offset(37, 1) = Cell.Offset(-2, 1)
+    Cell.Offset(37, 1).Value = Cell.Offset(-2, 1).Value
     ThickBorders Cell.Offset(37, 1)
     Cell.Offset(38) = "Output Name:"
-    Address = Range(Cell.Offset(-2, 1), Cell.Offset(-1, RiskOutputs.Count)).Address
+    Address = Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count).Address
     Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2,0)"
     Cell.Offset(39) = "Value:"
-    Cell.Offset(39, 1) = Cell.Offset(16, 1) '57th Percentile
+    Cell.Offset(39, 1).Value = Cell.Offset(16, 1).Value '57th Percentile
     ThickBorders Cell.Offset(39, 1)
     Cell.Offset(40) = "Result:"
-    Address = Range(Cell.Offset(-2, 1), Cell.Offset(-2, RiskOutputs.Count)).Address
+    Address = Cell.Offset(-2, 1).Resize(1, mRiskOutputs.Count).Address
     Cell.Offset(40, 1) = "=PERCENTRANK.INC(OFFSET(" & FirstOutput.Address & ",0,MATCH(" & Cell.Offset(37, 1).Address _
         & "," & Address & ",0)-1)," & Cell.Offset(39, 1).Address & ")"
     Cell.Offset(40, 1).NumberFormat = "0.00%"
-    Range(Cell.Offset(37), Cell.Offset(40)).HorizontalAlignment = xlRight
+    Cell.Offset(37).Resize(4, 1).HorizontalAlignment = xlRight
     With Cell.Offset(37, 1).Validation
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
         xlBetween, Formula1:="=" & Address
@@ -176,8 +213,7 @@ Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As
     Cell.CurrentRegion.Columns.AutoFit
 End Sub
 
-Sub ProduceCumulativeDistributions(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
-    Dim Cell As Range
+Private Sub ProduceCumulativeDistributions()
     Dim I As Integer
     Dim R As Range
     Dim Percentiles As Range
@@ -185,13 +221,12 @@ Sub ProduceCumulativeDistributions(Iterations As Long, RiskOutputs As Collection
     Dim NewChart As Chart
     Dim Source As Series
     
-    Set Cell = OutSheet.Range("OutCumDist")
-    Set Percentiles = OutSheet.Range("Percentiles")
-    Set R = Range(Cell, Cell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set Percentiles = mOutSheet.Range("Percentiles")
+    Set R = mOutSheet.Range("OutCumDist").Resize(ChartHeight, ChartWidth)
     
-    OutSheet.Activate
-    For I = 1 To RiskOutputs.Count
-        Set ChartShape = OutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height)
+    mOutSheet.Activate
+    For I = 1 To mRiskOutputs.Count
+        Set ChartShape = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height)
         Set NewChart = ChartShape.Chart
         
         With NewChart
@@ -205,16 +240,16 @@ Sub ProduceCumulativeDistributions(Iterations As Long, RiskOutputs As Collection
                 .Axes(xlCategory).MinimumScale = WorksheetFunction.RoundDown(Percentiles.Cells(1, I + 1), 0)
             End If
             '.Axes(xlCategory).MaximumScale = WorksheetFunction.RoundUp(Percentiles.Cells(21, I + 1), 0)
-           .SetElement (msoElementChartTitleAboveChart)
-           Set Cell = RiskOutputs(I).Cell
-           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I).Name & " (" & AddressWithSheet(Cell) & ")"
+            .SetElement (msoElementChartTitleAboveChart)
+            .ChartTitle.text = "Cum. Distribution of " & mRiskOutputs(I).Name & _
+                " (" & AddressWithSheet(mRiskOutputs(I).Cell) & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
-    OutSheet.Range("A1").Select
+    mOutSheet.Range("A1").Select
 End Sub
 
-Sub ProduceHistograms(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
+Private Sub ProduceHistograms()
     Dim SimOutput As Range
     Dim R As Range
     Dim ChartShape As Shape
@@ -223,11 +258,11 @@ Sub ProduceHistograms(Iterations As Long, RiskOutputs As Collection, OutSheet As
     
     On Error Resume Next
     
-    Set SimOutput = OutSheet.Range("OutputResults").Resize(Iterations, 1)
-    Set R = OutSheet.Range("OutDist").Resize(ChartHeight, ChartWidth)
+    Set SimOutput = mOutSheet.Range("OutputResults").Resize(mIterations, 1)
+    Set R = mOutSheet.Range("OutDist").Resize(ChartHeight, ChartWidth)
     
-    OutSheet.Activate
-    For Each RiskOutput In RiskOutputs
+    mOutSheet.Activate
+    For Each RiskOutput In mRiskOutputs
         ' Range needs to be selected
         'https://stackoverflow.com/questions/37912746/vba-why-xlhistogram-does-not-work
         SimOutput.Select
@@ -241,5 +276,6 @@ Sub ProduceHistograms(Iterations As Long, RiskOutputs As Collection, OutSheet As
         Set SimOutput = SimOutput.Offset(0, 1)
         Set R = R.Offset(ChartHeight + 1)
     Next RiskOutput
-    OutSheet.Range("A1").Select
+    mOutSheet.Range("A1").Select
 End Sub
+

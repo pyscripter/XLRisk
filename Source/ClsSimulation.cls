@@ -15,6 +15,8 @@ Private mIterations As Long
 Private mScreenUpdate As Boolean
 Private mSimError As Boolean
 Private mSimErrorMsg As String
+' The following two-dimensional array will contain the values of Iter, Risk Input Samples, Risk Output results
+Private mSimResults() As Double
 
 Property Get ActiveWorkBook() As Workbook
     Set ActiveWorkBook = mWB
@@ -30,33 +32,29 @@ Private Sub Class_Initialize()
     mScreenUpdate = XLRisk.Range("ScreenUpdate").Value
 End Sub
 
-Private Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection, OutSheet As Worksheet)
+Private Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection)
     Dim Cell As Range
     Dim RiskOutput As ClsRiskOutput
-    Dim Results() As Variant
     Dim I As Integer
       
     On Error GoTo SSError
         
     'Recalculate
     Application.Calculate
-    ReDim Results(1 To 1 + RiskInputs.Count + RiskOutputs.Count)
       
     ' Inputs
-    Results(1) = Iter
+    mSimResults(Iter, 1) = Iter
     I = 2
     For Each Cell In RiskInputs
-        Results(I) = Cell
+        mSimResults(Iter, I) = Cell.Value
         I = I + 1
     Next Cell
     
     'Outputs
     For Each RiskOutput In RiskOutputs
-        Results(I) = RiskOutput.Cell.Value
+        mSimResults(Iter, I) = RiskOutput.Cell.Value
         I = I + 1
     Next RiskOutput
-    'Produce Output
-    OutSheet.Cells(Iter + 3, 1).Resize(1, 1 + RiskInputs.Count + RiskOutputs.Count) = Results
     Exit Sub
 SSError:
     mSimError = True
@@ -64,12 +62,12 @@ SSError:
 End Sub
 
 Public Sub Run()
-    Dim OutSheet As Worksheet
-    Dim AppCalculation
+    Dim AppCalculation As XlCalculation
     Dim RiskInputs As Collection
     Dim RiskOutputs As Collection
     Dim Iter As Integer
     Dim OldProduceRandomSample As Boolean
+    Dim SimResults As ClsSimResults
     
     ' Save ProduceRandomSample
     OldProduceRandomSample = ProduceRandomSample
@@ -100,15 +98,11 @@ Public Sub Run()
         GoTo RestoreExcel
     End If
         
-    Set OutSheet = CreateOutputSheet
-    
-    InitialiseResults RiskInputs, RiskOutputs, OutSheet
-    
     'Perform simulation
     UserStopped = False
     ProduceRandomSample = True
     Application.CalculateFull
-    
+        
     'Randomize
     If mSeed <> 0 Then
         'https://stackoverflow.com/questions/16589180/visual-basic-random-number-with-seed-but-in-reverse
@@ -118,13 +112,16 @@ Public Sub Run()
         Randomize
     End If
     
+    ' Allocate storage space
+    ReDim mSimResults(1 To mIterations, 1 To 1 + RiskInputs.Count + RiskOutputs.Count)
+    
     For Iter = 1 To mIterations
         If mSimError Then
             mSimError = False
             MsgBox mSimErrorMsg
             Exit For
         End If
-        SimIteration Iter, RiskInputs, RiskOutputs, OutSheet
+        SimIteration Iter, RiskInputs, RiskOutputs
         DoEvents
         'Check whether to Stop
         If UserStopped Then
@@ -135,16 +132,9 @@ Public Sub Run()
         Application.StatusBar = "Iteration: " & CStr(Iter) & "/" & CStr(mIterations)
     Next Iter
     
-    OutSheet.Range("A3").CurrentRegion.Columns.AutoFit
-    ' Produce Statistics
-    ProduceStatistics mIterations, RiskOutputs, OutSheet
-    ' Calculate before producing the graphs
-    Application.Calculate
-    ' Produce Cumulative Distributions
-    ProduceCumulativeDistributions mIterations, RiskOutputs, OutSheet
-    ' Produce histograms only if Excel version > 16
-    If Val(Application.Version) >= 16 Then ProduceHistograms mIterations, RiskOutputs, OutSheet
-    OutSheet.Activate
+    Set SimResults = New ClsSimResults
+    SimResults.Init RiskInputs, RiskOutputs, mIterations, mSimResults
+    SimResults.ProduceResults
 RestoreExcel:
     'Restore ProduceRandomSample
     ProduceRandomSample = OldProduceRandomSample

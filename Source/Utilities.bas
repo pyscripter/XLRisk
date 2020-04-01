@@ -99,10 +99,10 @@ Sub CollectRiskOutputs(Coll As Collection)
     Set R = Sht.Range("RiskOutputs").CurrentRegion
     
     For Row = 2 To R.Rows.Count
-        Set RiskOutputRange = Range(R.Cells(Row, 1))
+        Set RiskOutputRange = Range(R.Cells(Row, 1).Value)
         For Each Cell In RiskOutputRange
             Set RiskOutput = New ClsRiskOutput
-            RiskOutput.Init R.Cells(Row, 2), Cell
+            RiskOutput.Init R.Cells(Row, 2).Value, Cell
             Coll.Add RiskOutput
         Next Cell
     Next Row

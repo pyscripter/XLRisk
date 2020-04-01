@@ -80,7 +80,10 @@ Attribute RiskTriang.VB_Description = "Generate random sample from a triangular 
 Attribute RiskTriang.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Triangular distribution
 '  See https://en.wikipedia.org/wiki/Triangular_distribution
-    Dim LowerRange As Double, HigherRange As Double, TotalRange As Double, CumulativeProb As Double
+    Dim LowerRange As Double
+    Dim HigherRange As Double
+    Dim TotalRange As Double
+    Dim CumulativeProb As Double
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
@@ -129,7 +132,9 @@ Attribute RiskPert.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Pert distribution a special case of the Beta distribution
 '  A smoother version of the triangular distribution
 '  See https://www.coursera.org/lecture/excel-vba-for-creative-problem-solving-part-3-projects/the-beta-pert-distribution-GJVsK
-    Dim alpha As Double, beta As Double
+    Dim alpha As Double
+    Dim beta As Double
+    
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
@@ -221,7 +226,7 @@ Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Sub CreateFunctionDescription(FuncName, FuncDesc, ArgDesc)
+Private Sub CreateFunctionDescription(FuncName As String, FuncDesc As String, ArgDesc As Variant)
 '   Creates a description for a function and its arguments
 '   They are used by the Excel function wizard
     On Error Resume Next
@@ -232,7 +237,7 @@ Sub CreateFunctionDescription(FuncName, FuncDesc, ArgDesc)
       ArgumentDescriptions:=ArgDesc)
 End Sub
 
-Sub FunctionDescriptions()
+Public Sub FunctionDescriptions()
   Call CreateFunctionDescription("RiskUniform", "Generate random sample from a uniform destribution", _
     Array("Minimum value", "Maximum Value"))
   Call CreateFunctionDescription("RiskNormal", "Generate random sample from a normal destribution", _
@@ -256,7 +261,10 @@ Public Function RndM(Optional ByVal Number As Long) As Double
 ' Wichman-Hill Pseudo Random Number Generator: an alternative for VB Rnd() function
 ' http://www.vbforums.com/showthread.php?499661-Wichmann-Hill-Pseudo-Random-Number-Generator-an-alternative-for-VB-Rnd%28%29-function
 ' See also https://www.random.org/analysis/#visual
-    Static lngX As Long, lngY As Long, lngZ As Long, blnInit As Boolean
+    Static lngX As Long
+    Static lngY As Long
+    Static lngZ As Long
+    Static blnInit As Boolean
     Dim dblRnd As Double
     ' if initialized and no input number given
     If blnInit And Number = 0 Then
@@ -271,9 +279,9 @@ Public Function RndM(Optional ByVal Number As Long) As Double
         lngY = (Number Mod 30307)
         lngZ = (Number Mod 30323)
         ' lngX, lngY and lngZ must be bigger than 0
-        If lngX > 0 Then Else lngX = 171
-        If lngY > 0 Then Else lngY = 172
-        If lngZ > 0 Then Else lngZ = 170
+        If lngX <= 0 Then lngX = 171
+        If lngY <= 0 Then lngY = 172
+        If lngZ <= 0 Then lngZ = 170
         ' mark initialization state
         blnInit = True
     End If
