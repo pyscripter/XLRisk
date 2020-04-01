@@ -3,153 +3,14 @@ Option Explicit
 Option Base 1
 
 Public UserStopped As Boolean
-Dim SimError As Boolean
-Dim SimErrorMsg As String
 
 Private Const ChartHeight = 22 'rows
 Private Const ChartWidth = 10 'columns
 
-Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection, OutSheet As Worksheet)
-    Dim Cell As Range
-    Dim RiskOutput As ClsRiskOutput
-    Dim Results() As Variant
-    Dim I As Integer
-      
-    On Error GoTo SSError
-        
-    'Recalculate
-    Application.Calculate
-    ReDim Results(1 + RiskInputs.Count + RiskOutputs.Count)
-      
-    ' Inputs
-    Results(1) = Iter
-    I = 2
-    For Each Cell In RiskInputs
-        Results(I) = Cell
-        I = I + 1
-    Next Cell
-    
-    'Outputs
-    For Each RiskOutput In RiskOutputs
-        Results(I) = RiskOutput.Cell.Value
-        I = I + 1
-    Next RiskOutput
-    'Produce Output
-    OutSheet.Cells(Iter + 3, 1).Resize(1, 1 + RiskInputs.Count + RiskOutputs.Count) = Results
-    Exit Sub
-SSError:
-      SimError = True
-  SimErrorMsg = "Error in simulation iteration"
-End Sub
-
-Public Sub Simulate()
-    Dim OutSheet As Worksheet
-    Dim AppCalculation
-    Dim RiskInputs As Collection
-    Dim RiskOutputs As Collection
-    Dim XLRisk As Worksheet
-    Dim Iterations As Integer
-    Dim Iter As Integer
-    Dim OldProduceRandomSample As Boolean
-    Dim Seed As Double
-    
-    ' Save ProduceRandomSample
-    OldProduceRandomSample = ProduceRandomSample
-    
-    ' Save Calculation Mode
-    AppCalculation = Application.Calculation
-    Application.Calculation = xlCalculationManual
-    
-    On Error GoTo RestoreExcel
-        
-    Set XLRisk = SetUpXLRisk
-    '  Stop Screen Updating?
-    Application.ScreenUpdating = XLRisk.Range("ScreenUpdate")
-    Application.Cursor = xlWait
-    
-    Iterations = XLRisk.Range("Iterations")
-    
-    Set RiskInputs = New Collection
-    CollectRiskInputs RiskInputs
-    If RiskInputs.Count = 0 Then
-        MsgBox "No risk inputs defined", Title:="XLRisk simulation error"
-        GoTo RestoreExcel
-    End If
-    
-    If OneRiskFunctionPerCell(RiskInputs) Then GoTo RestoreExcel
-    
-    Set RiskOutputs = New Collection
-    CollectRiskOutputs RiskOutputs
-    If RiskOutputs.Count = 0 Then
-        MsgBox "No risk outputs defined", Title:="XLRisk simulation error"
-        GoTo RestoreExcel
-    End If
-        
-    Set OutSheet = CreateOutputSheet
-    
-    InitialiseResults RiskInputs, RiskOutputs, OutSheet
-    
-    'Perform simulation
-    UserStopped = False
-    ProduceRandomSample = True
-    Application.CalculateFull
-    
-    'Randomize
-    Seed = XLRisk.Range("Seed")
-    If Seed <> 0 Then
-        'https://stackoverflow.com/questions/16589180/visual-basic-random-number-with-seed-but-in-reverse
-        Rnd (-1)
-        Randomize (Seed)
-    Else
-        Randomize
-    End If
-    
-    For Iter = 1 To Iterations
-        If SimError Then
-            SimError = False
-            MsgBox SimErrorMsg
-            Exit For
-        End If
-        SimIteration Iter, RiskInputs, RiskOutputs, OutSheet
-        DoEvents
-        'Check whether to Stop
-        If UserStopped Then
-            UserStopped = False
-            MsgBox "The simulation was interrupted"
-            Exit For
-        End If
-        Application.StatusBar = "Iteration: " & CStr(Iter) & "/" & CStr(Iterations)
-    Next Iter
-    
-    OutSheet.Range("A3").CurrentRegion.Columns.AutoFit
-    ' Produce Statistics
-    ProduceStatistics Iterations, RiskOutputs, OutSheet
-    ' Calculate before producing the graphs
-    Application.Calculate
-    ' Produce Cumulative Distributions
-    ProduceCumulativeDistributions Iterations, RiskOutputs, OutSheet
-    ' Produce histograms only if Excel version > 16
-    If Val(Application.Version) >= 16 Then ProduceHistograms Iterations, RiskOutputs, OutSheet
-    OutSheet.Activate
-RestoreExcel:
-    'Restore ProduceRandomSample
-    ProduceRandomSample = OldProduceRandomSample
-    
-    'Restore Calculation Mode
-    Application.Calculation = AppCalculation
-    Application.CalculateFull
-    
-    ' Restore Status Bar
-    Application.StatusBar = False
-    
-    Application.ScreenUpdating = True
-    Application.Cursor = xlDefault
-End Sub
 
 Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection, WS As Worksheet)
     Dim Cell As Range
     Dim Curr As Range
-    Dim I As Integer
     Dim RiskOutput As ClsRiskOutput
     
     With WS
@@ -240,7 +101,7 @@ Sub StatAggregateHelper(Cell As Range, StatName As String, FormulaCode As Intege
     Cell.Offset(0, 1).Formula = "=AGGREGATE(" & CStr(FormulaCode) & ",6," & Address & ")"
 End Sub
 
-Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
+Sub ProduceStatistics(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
 '  Use the Aggregate Excel function so that stats can be calculated even if the outputs contain a few errors
     Dim FirstOutput As Range
     Dim Cell As Range
@@ -315,7 +176,7 @@ Sub ProduceStatistics(Iterations As Integer, RiskOutputs As Collection, OutSheet
     Cell.CurrentRegion.Columns.AutoFit
 End Sub
 
-Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
+Sub ProduceCumulativeDistributions(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
     Dim Cell As Range
     Dim I As Integer
     Dim R As Range
@@ -353,7 +214,7 @@ Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collect
     OutSheet.Range("A1").Select
 End Sub
 
-Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
+Sub ProduceHistograms(Iterations As Long, RiskOutputs As Collection, OutSheet As Worksheet)
     Dim SimOutput As Range
     Dim R As Range
     Dim ChartShape As Shape

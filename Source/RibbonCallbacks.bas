@@ -73,8 +73,10 @@ End Sub
 
 ' This is an auxialiary routine to force the update of the enabled state of the buttons
 Sub DelayedSimulate()
+    Dim Simulation As ClsSimulation
     On Error Resume Next
-    Simulate
+    Set Simulation = New ClsSimulation
+    Simulation.Run
     Running = False
     XLRiskRibbonUI.Invalidate
 End Sub

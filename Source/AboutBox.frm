@@ -13,7 +13,9 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
-Const XLRiskVersion = "0.80"
+Option Explicit
+
+Const XLRiskVersion As String = "0.80"
 
 Private Sub btnOK_Click()
     Unload Me
