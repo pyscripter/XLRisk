@@ -11,7 +11,7 @@ Private Const ChartWidth = 10 'columns
 
 Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection, OutSheet As Worksheet)
     Dim Cell As Range
-    Dim Item As Variant
+    Dim RiskOutput As ClsRiskOutput
     Dim Results() As Variant
     Dim I As Integer
       
@@ -30,10 +30,10 @@ Public Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs A
     Next Cell
     
     'Outputs
-    For Each Item In RiskOutputs
-        Results(I) = Item(2)
+    For Each RiskOutput In RiskOutputs
+        Results(I) = RiskOutput.Cell.Value
         I = I + 1
-    Next Item
+    Next RiskOutput
     'Produce Output
     OutSheet.Cells(Iter + 3, 1).Resize(1, 1 + RiskInputs.Count + RiskOutputs.Count) = Results
     Exit Sub
@@ -146,11 +146,11 @@ RestoreExcel:
     Application.Cursor = xlDefault
 End Sub
 
-
 Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection, WS As Worksheet)
     Dim Cell As Range
     Dim Curr As Range
     Dim I As Integer
+    Dim RiskOutput As ClsRiskOutput
     
     With WS
         .Range("B1") = "Inputs"
@@ -174,12 +174,11 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     '   Setup risk outputs
     Curr.Offset(-1, 0) = "Outputs"
     Curr.Offset(2).Name = "OutputResults"
-    For I = 1 To RiskOutputs.Count
-        Set Cell = RiskOutputs(I)(2)
-        Curr = AddressWithSheet(Cell)
-        Curr.Offset(1, 0) = RiskOutputs(I)(1)
+    For Each RiskOutput In RiskOutputs
+        Curr = AddressWithSheet(RiskOutput.Cell)
+        Curr.Offset(1, 0) = RiskOutput.Name
         Set Curr = Curr.Offset(0, 1)
-    Next I
+    Next RiskOutput
     'Format Output
     With Range(WS.Range("B1").Offset(0, 1), WS.Range("B1").Offset(0, RiskOutputs.Count))
         If RiskOutputs.Count > 1 Then .Merge
@@ -191,12 +190,11 @@ Public Sub InitialiseResults(RiskInputs As Collection, RiskOutputs As Collection
     Set Curr = Curr.Offset(0, 2)
     Curr.Offset(-1, 0) = "Simulation Statistics"
     Curr.Offset(2, -1).Name = "SimStats"
-    For I = 1 To RiskOutputs.Count
-        Set Cell = RiskOutputs(I)(2)
-        Curr = AddressWithSheet(Cell)
-        Curr.Offset(1, 0) = RiskOutputs(I)(1)
+    For Each RiskOutput In RiskOutputs
+        Curr = AddressWithSheet(RiskOutput.Cell)
+        Curr.Offset(1, 0) = RiskOutput.Name
         Set Curr = Curr.Offset(0, 1)
-    Next I
+    Next RiskOutput
     'Format Simulation Results
     With Range(WS.Range("SimStats").Offset(-3), WS.Range("SimStats").Offset(-3, RiskOutputs.Count))
         If RiskOutputs.Count > 1 Then .Merge
@@ -347,8 +345,8 @@ Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collect
             End If
             '.Axes(xlCategory).MaximumScale = WorksheetFunction.RoundUp(Percentiles.Cells(21, I + 1), 0)
            .SetElement (msoElementChartTitleAboveChart)
-           Set Cell = RiskOutputs(I)(2)
-           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I)(1) & " (" & AddressWithSheet(Cell) & ")"
+           Set Cell = RiskOutputs(I).Cell
+           .ChartTitle.text = "Cum. Distribution of " & RiskOutputs(I).Name & " (" & AddressWithSheet(Cell) & ")"
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
@@ -356,34 +354,31 @@ Sub ProduceCumulativeDistributions(Iterations As Integer, RiskOutputs As Collect
 End Sub
 
 Sub ProduceHistograms(Iterations As Integer, RiskOutputs As Collection, OutSheet As Worksheet)
-    Dim FirstOutput As Range
-    Dim Cell As Range
-    Dim I As Integer
+    Dim SimOutput As Range
     Dim R As Range
     Dim ChartShape As Shape
     Dim NewChart As Chart
+    Dim RiskOutput As ClsRiskOutput
     
     On Error Resume Next
     
-    Set Cell = OutSheet.Range("OutputResults")
-    Set FirstOutput = OutSheet.Range(Cell, Cell.Offset(Iterations - 1))
-    Set Cell = OutSheet.Range("OutDist")
-    Set R = Range(Cell, Cell.Offset(ChartHeight - 1, ChartWidth - 1))
+    Set SimOutput = OutSheet.Range("OutputResults").Resize(Iterations, 1)
+    Set R = OutSheet.Range("OutDist").Resize(ChartHeight, ChartWidth)
     
     OutSheet.Activate
-    For I = 1 To RiskOutputs.Count
+    For Each RiskOutput In RiskOutputs
         ' Range needs to be selected
         'https://stackoverflow.com/questions/37912746/vba-why-xlhistogram-does-not-work
-        FirstOutput.Offset(0, I - 1).Select
+        SimOutput.Select
         Set ChartShape = ActiveSheet.Shapes.AddChart2(-1, xlHistogram, R.Left, R.Top, R.Width, R.Height)
         Set NewChart = ChartShape.Chart
         
-        Set Cell = RiskOutputs(I)(2)
         With NewChart
            .SetElement (msoElementChartTitleAboveChart)
-           .ChartTitle.text = "Distribution of " & RiskOutputs(I)(1) & " (" & AddressWithSheet(Cell) & ")"
+           .ChartTitle.text = "Distribution of " & RiskOutput.Name & " (" & AddressWithSheet(RiskOutput.Cell) & ")"
         End With
+        Set SimOutput = SimOutput.Offset(0, 1)
         Set R = R.Offset(ChartHeight + 1)
-    Next I
+    Next RiskOutput
     OutSheet.Range("A1").Select
 End Sub

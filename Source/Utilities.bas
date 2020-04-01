@@ -13,7 +13,7 @@ Sub CollectRiskInputs(Coll As Collection)
         
     FunctionList = RiskFunctionList()
         
-    For Each Sht In ActiveWorkbook.Worksheets 'loop through the sheets in the workbook
+    For Each Sht In ActiveWorkBook.Worksheets 'loop through the sheets in the workbook
         On Error Resume Next 'in case there are no formulas
         'Limit the search to the UsedRange and use SpecialCells to reduce looping further
         Set Formulas = Sht.UsedRange.SpecialCells(xlCellTypeFormulas)
@@ -90,17 +90,20 @@ Sub CollectRiskOutputs(Coll As Collection)
 '  Assumes XLRisk sheet exists
     Dim Sht As Worksheet
     Dim R As Range
-    Dim RiskOutput As Range
+    Dim RiskOutputRange As Range
     Dim Row As Integer
     Dim Cell As Range
+    Dim RiskOutput As ClsRiskOutput
     
-    Set Sht = ActiveWorkbook.Worksheets("XLRisk")
+    Set Sht = ActiveWorkBook.Worksheets("XLRisk")
     Set R = Sht.Range("RiskOutputs").CurrentRegion
     
     For Row = 2 To R.Rows.Count
-        Set RiskOutput = Range(R.Cells(Row, 1))
-        For Each Cell In RiskOutput
-          Coll.Add Array(R.Cells(Row, 2), Cell)
+        Set RiskOutputRange = Range(R.Cells(Row, 1))
+        For Each Cell In RiskOutputRange
+            Set RiskOutput = New ClsRiskOutput
+            RiskOutput.Init R.Cells(Row, 2), Cell
+            Coll.Add RiskOutput
         Next Cell
     Next Row
 End Sub
@@ -137,4 +140,5 @@ Function NameOrAddress(R As Range) As String
     NameOrAddress = R.Name.Name
     If Len(NameOrAddress) = 0 Then NameOrAddress = AddressWithSheet(R)
 End Function
+
 

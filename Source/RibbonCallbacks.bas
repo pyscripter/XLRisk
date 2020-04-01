@@ -49,7 +49,7 @@ Sub RibbonIterationsText(control As IRibbonControl, ByRef returnedVal)
      
     On Error Resume Next
     Err.Clear
-    Set XLRisk = ActiveWorkbook.Worksheets("XLRisk")
+    Set XLRisk = ActiveWorkBook.Worksheets("XLRisk")
     If Err = 0 Then
         returnedVal = CStr(XLRisk.Range("Iterations"))
     Else

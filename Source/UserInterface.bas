@@ -9,7 +9,7 @@ Public Function SetUpXLRisk() As Worksheet
     Dim CurrentWS As Worksheet
      
     On Error Resume Next
-    Set WB = ActiveWorkbook
+    Set WB = ActiveWorkBook
     Set CurrentWS = WB.ActiveSheet
     Err.Clear
         
@@ -65,7 +65,7 @@ Public Function CreateOutputSheet() As Worksheet
     Dim CurrentWS As Worksheet
     Dim I As Integer
      
-    Set WB = ActiveWorkbook
+    Set WB = ActiveWorkBook
     Set CurrentWS = WB.ActiveSheet
     Err.Clear
     
