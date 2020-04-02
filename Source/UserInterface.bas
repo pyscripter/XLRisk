@@ -2,6 +2,7 @@ Attribute VB_Name = "UserInterface"
 Option Explicit
 
 Public UserStopped As Boolean
+Public gSimulation As ClsSimulation
 
 Public Function SetUpXLRisk() As Worksheet
 '  Creates a sheet named XLRisk that contains risk settings, inputs and outputs
@@ -35,6 +36,9 @@ Public Function SetUpXLRisk() As Worksheet
             .Cells(4, 1) = "Iterations"
             .Cells(4, 2) = 1000
             .Cells(4, 2).Name = "Iterations"
+            .Cells(5, 1) = "Latin Hypercube"
+            .Cells(5, 2) = True
+            .Cells(5, 2).Name = "LatinHypercube"
         
             .Range("A1").Columns.AutoFit
             .Range("A2.A4").Font.Italic = True

@@ -13,7 +13,7 @@ Private mOutSheet As Worksheet
 Private mRiskInputs As Collection
 Private mRiskOutputs As Collection
 Private mIterations As Long
-Private mSimResults() As Double
+Private mSimResults() As Variant
 
 Private Const ChartHeight As Integer = 22 'rows
 Private Const ChartWidth As Integer = 10 'columns
@@ -23,7 +23,7 @@ Private Sub Class_Initialize()
     Set mOutSheet = CreateOutputSheet
 End Sub
 
-Public Sub Init(RiskInputs As Collection, RiskOutputs As Collection, Iterations As Long, SimResults() As Double)
+Public Sub Init(RiskInputs As Collection, RiskOutputs As Collection, Iterations As Long, SimResults() As Variant)
     Set mRiskInputs = RiskInputs
     Set mRiskOutputs = RiskOutputs
     mIterations = Iterations

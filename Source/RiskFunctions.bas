@@ -16,7 +16,8 @@ End Function
 Public Function RiskUniform(Min As Double, Max As Double)
 Attribute RiskUniform.VB_Description = "Generate random sample from a uniform destribution"
 Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
-'  Random Sample from a Uniform distribution
+'   Random Sample from a Uniform distribution
+    Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
@@ -26,7 +27,12 @@ Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
     
     If ProduceRandomSample Then
-        RiskUniform = Min + Rnd() * (Max - Min)
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskUniform = Min + RndValue * (Max - Min)
     Else
         RiskUniform = (Min + Max) / 2
     End If
@@ -38,12 +44,18 @@ Attribute RiskDUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Discrete Uniform distribution
 '  Values can be a range or an array of values
     Dim Count As Integer
+    Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
     Count = WorksheetFunction.Count(Values)
 
     If ProduceRandomSample Then
-        RiskDUniform = Values(Int(Rnd() * Count) + 1)
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskDUniform = Values(Int(RndValue * Count) + 1)
     Else
         RiskDUniform = WorksheetFunction.Sum(Values) / Count
     End If
@@ -53,10 +65,16 @@ Public Function RiskNormal(Mean As Double, StDev As Double)
 Attribute RiskNormal.VB_Description = "Generate random sample from a normal destribution"
 Attribute RiskNormal.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Normal distribution
+    Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
     If ProduceRandomSample Then
-        RiskNormal = WorksheetFunction.Norm_Inv(Rnd(), Mean, StDev)
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskNormal = WorksheetFunction.Norm_Inv(RndValue, Mean, StDev)
     Else
         RiskNormal = Mean
     End If
@@ -66,10 +84,16 @@ Public Function RiskLogNorm(Mean As Double, StDev As Double)
 Attribute RiskLogNorm.VB_Description = "Generate random sample from a lognormal destribution"
 Attribute RiskLogNorm.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Log Normal distribution
+    Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
     If ProduceRandomSample Then
-        RiskLogNorm = WorksheetFunction.LogNorm_Inv(Rnd(), Mean, StDev)
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskLogNorm = WorksheetFunction.LogNorm_Inv(RndValue, Mean, StDev)
     Else
         RiskLogNorm = Exp(Mean + 0.5 * StDev ^ 2)
     End If
@@ -96,7 +120,11 @@ Attribute RiskTriang.VB_ProcData.VB_Invoke_Func = " \n20"
         LowerRange = Mode - Min
         HigherRange = Max - Mode
         TotalRange = Max - Min
-        CumulativeProb = Rnd()
+        If gSimulation Is Nothing Then
+            CumulativeProb = Rnd()
+        Else
+            CumulativeProb = gSimulation.GetRndSample(Application.Caller)
+        End If
         If CumulativeProb < (LowerRange / TotalRange) Then
             RiskTriang = Min + Sqr(CumulativeProb * LowerRange * TotalRange)
         Else
@@ -111,6 +139,7 @@ Function RiskBeta(alpha As Double, beta As Double, Optional A As Double = 0, Opt
 Attribute RiskBeta.VB_Description = "Generate random sample from a beta destribution"
 Attribute RiskBeta.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Beta distribution
+    Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
@@ -120,7 +149,12 @@ Attribute RiskBeta.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
     
     If ProduceRandomSample Then
-        RiskBeta = WorksheetFunction.Beta_Inv(Rnd(), alpha, beta, A, B)
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskBeta = WorksheetFunction.Beta_Inv(RndValue, alpha, beta, A, B)
     Else
         RiskBeta = A + (alpha / (alpha + beta)) * (B - A)
     End If
@@ -129,7 +163,7 @@ End Function
 Function RiskPert(Min As Double, Mode As Double, Max As Double)
 Attribute RiskPert.VB_Description = "Generate random sample from a PERT destribution"
 Attribute RiskPert.VB_ProcData.VB_Invoke_Func = " \n20"
-'  Random Sample from a Pert distribution a special case of the Beta distribution
+'  Randoom Sample from a Pert distribution a special case of the Beta distribution
 '  A smoother version of the triangular distribution
 '  See https://www.coursera.org/lecture/excel-vba-for-creative-problem-solving-part-3-projects/the-beta-pert-distribution-GJVsK
     Dim alpha As Double
@@ -199,7 +233,11 @@ Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
     
     If ProduceRandomSample Then
-        RndValue = Rnd()
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
         If RndValue <= YValues(1) Then
             RiskCumul = MinValue + (XValues(1) - MinValue) * RndValue / YValues(1)
         ElseIf RndValue > YValues(Count) Then

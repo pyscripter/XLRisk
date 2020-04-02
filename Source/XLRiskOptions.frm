@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} XLRiskOptions 
    Caption         =   "XLRisk Options"
-   ClientHeight    =   3540
+   ClientHeight    =   3945
    ClientLeft      =   105
    ClientTop       =   435
-   ClientWidth     =   4470
+   ClientWidth     =   4890
    OleObjectBlob   =   "XLRiskOptions.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -25,6 +25,7 @@ Private Sub btnOK_Click()
     XLRisk.Range("Seed") = CDbl(tbSeed.text)
     XLRisk.Range("Iterations") = CInt(cbIterations.text)
     XLRisk.Range("ScreenUpdate") = cbScreenUpdate.Value
+    XLRisk.Range("LatinHypercube") = cbLatinHypercube.Value
     If ProduceRandomSample <> cbRandomSamples.Value Then
         ProduceRandomSample = cbRandomSamples.Value
         Application.Calculate
@@ -43,4 +44,5 @@ Private Sub UserForm_Initialize()
     cbIterations.text = CStr(XLRisk.Range("Iterations"))
     cbScreenUpdate.Value = CBool(XLRisk.Range("ScreenUpdate"))
     cbRandomSamples.Value = ProduceRandomSample
+    cbLatinHypercube.Value = CBool(XLRisk.Range("LatinHypercube"))
 End Sub

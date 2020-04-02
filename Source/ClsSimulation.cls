@@ -13,10 +13,13 @@ Private mWB As Workbook
 Private mSeed As Double
 Private mIterations As Long
 Private mScreenUpdate As Boolean
+Private mLatinHypercube As Boolean
 Private mSimError As Boolean
 Private mSimErrorMsg As String
 ' The following two-dimensional array will contain the values of Iter, Risk Input Samples, Risk Output results
-Private mSimResults() As Double
+Private mSimResults() As Variant
+Private mInputGroup As ClsInputGroup
+Private mCurrentIteration As Long
 
 Property Get ActiveWorkBook() As Workbook
     Set ActiveWorkBook = mWB
@@ -24,12 +27,14 @@ End Property
 
 Private Sub Class_Initialize()
     Dim XLRisk As Worksheet
-    Set mWB = ActiveWorkBook
+    Set mWB = Application.ActiveWorkBook
     
     Set XLRisk = SetUpXLRisk
     mSeed = XLRisk.Range("Seed").Value
     mIterations = XLRisk.Range("Iterations").Value
     mScreenUpdate = XLRisk.Range("ScreenUpdate").Value
+    mLatinHypercube = XLRisk.Range("LatinHypercube").Value
+    mCurrentIteration = 0
 End Sub
 
 Private Sub SimIteration(Iter As Integer, RiskInputs As Collection, RiskOutputs As Collection)
@@ -114,8 +119,12 @@ Public Sub Run()
     
     ' Allocate storage space
     ReDim mSimResults(1 To mIterations, 1 To 1 + RiskInputs.Count + RiskOutputs.Count)
-    
+    ' Set up Risk InputGroups
+    Set mInputGroup = New ClsInputGroup
+    mInputGroup.Init mIterations, RiskInputs, mLatinHypercube
+      
     For Iter = 1 To mIterations
+        mCurrentIteration = Iter
         If mSimError Then
             mSimError = False
             MsgBox mSimErrorMsg
@@ -131,6 +140,7 @@ Public Sub Run()
         End If
         Application.StatusBar = "Iteration: " & CStr(Iter) & "/" & CStr(mIterations)
     Next Iter
+    mCurrentIteration = 0
     
     Set SimResults = New ClsSimResults
     SimResults.Init RiskInputs, RiskOutputs, mIterations, mSimResults
@@ -149,3 +159,12 @@ RestoreExcel:
     Application.ScreenUpdating = True
     Application.Cursor = xlDefault
 End Sub
+
+Public Function GetRndSample(Cell As Range) As Double
+    If (mCurrentIteration < 1) Or Not (Cell.Worksheet.Parent Is mWB) Then
+        GetRndSample = Rnd()
+    Else
+        GetRndSample = mInputGroup.GetRndSample(mCurrentIteration, AddressWithSheet(Cell))
+    End If
+End Function
+

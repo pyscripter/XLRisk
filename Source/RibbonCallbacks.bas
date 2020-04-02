@@ -76,9 +76,12 @@ Sub DelayedSimulate()
     Dim Simulation As ClsSimulation
     On Error Resume Next
     Set Simulation = New ClsSimulation
+    'Set the Global Simulation object
+    Set gSimulation = Simulation
     Simulation.Run
     Running = False
     XLRiskRibbonUI.Invalidate
+    Set gSimulation = Nothing
 End Sub
 
 'Callback for BtnRun onAction
