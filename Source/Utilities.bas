@@ -10,6 +10,7 @@ Sub CollectRiskInputs(Coll As Collection)
     Dim Cell As Range
     Dim RiskFunction As Variant
     Dim FunctionList As Variant
+    Dim RiskInput As ClsRiskInput
         
     FunctionList = RiskFunctionList()
         
@@ -22,7 +23,9 @@ Sub CollectRiskInputs(Coll As Collection)
                 '  Check whether the formula contains a Risk function
                 For Each RiskFunction In FunctionList
                     If Cell.HasFormula And InStr(1, Cell.Formula, RiskFunction, vbTextCompare) > 0 Then
-                        Coll.Add Cell
+                        Set RiskInput = New ClsRiskInput
+                        RiskInput.Init Cell
+                        Call Coll.Add(RiskInput, AddressWithSheet(Cell))
                         Exit For
                     End If
                Next RiskFunction
@@ -34,34 +37,34 @@ Sub CollectRiskInputs(Coll As Collection)
 End Sub
 
 Public Function OneRiskFunctionPerCell(Coll As Collection) As Boolean
-    Dim Cell As Range
+    Dim RiskInput As ClsRiskInput
     Dim FunctionList As Variant
     Dim RiskFunction As Variant
     Dim Count As Integer
     Dim Pos As Integer
     
-    OneRiskFunctionPerCell = False
+    OneRiskFunctionPerCell = True
     FunctionList = RiskFunctionList()
-    For Each Cell In Coll
+    For Each RiskInput In Coll
         Count = 0
         For Each RiskFunction In FunctionList
             Pos = 1
             Do Until Pos = 0
-                Pos = InStr(Pos, Cell.Formula, RiskFunction, vbTextCompare)
+                Pos = InStr(Pos, RiskInput.Cell.Formula, RiskFunction, vbTextCompare)
                 If Pos > 0 Then
                     Count = Count + 1
                     Pos = Pos + Len(RiskFunction)
                 End If
             If Count > 1 Then
-                OneRiskFunctionPerCell = True
-                MsgBox "XLRisk allows only one risk function per cell. Cell " & AddressWithSheet(Cell) & _
+                OneRiskFunctionPerCell = False
+                MsgBox "XLRisk allows only one risk function per cell. Cell " & AddressWithSheet(RiskInput.Cell) & _
                     " contains more than one risk function", vbExclamation, _
                     "Multiple risk functions in cell"
                 Exit Function
             End If
             Loop
         Next RiskFunction
-    Next Cell
+    Next RiskInput
 End Function
 
 Public Function InputCells() As Variant
@@ -76,7 +79,7 @@ Public Function InputCells() As Variant
     ' Convert collection to an array
     ReDim Result(Coll.Count, 2)
     For I = 1 To Coll.Count
-      Set Cell = Coll(I)
+      Set Cell = Coll(I).Cell
       Result(I, 1) = AddressWithSheet(Cell)
       Result(I, 2) = Right(Cell.Formula, Len(Cell.Formula) - 1)
     Next I

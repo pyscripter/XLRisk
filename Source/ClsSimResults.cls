@@ -33,8 +33,7 @@ End Sub
 Public Sub ProduceResults()
     InitialiseResults
     'Produce Output
-    mOutSheet.Cells(4, 1).Resize(mIterations, 1 + mRiskInputs.Count + mRiskOutputs.Count) = mSimResults
-    mOutSheet.Range("A3").CurrentRegion.Columns.AutoFit
+    mOutSheet.Cells(4, 2).Resize(mIterations, 1 + mRiskInputs.Count + mRiskOutputs.Count) = mSimResults
     ' Produce Statistics
     ProduceStatistics
     ' Calculate before producing the graphs
@@ -47,24 +46,24 @@ Public Sub ProduceResults()
 End Sub
 
 Private Sub InitialiseResults()
-    Dim Cell As Range
+    Dim RiskInput As ClsRiskInput
     Dim Curr As Range
     Dim RiskOutput As ClsRiskOutput
     
     With mOutSheet
-        .Range("B1") = "Inputs"
-        .Range("A3") = "Iterations"
+        .Range("C1").Value = "Inputs"
+        .Range("B3").Value = "Iterations"
     End With
       
     '  Setup risk inputs
-    Set Curr = mOutSheet.Range("B2")
-    For Each Cell In mRiskInputs
-        Curr = NameOrAddress(Cell)
-        Curr.Offset(1, 0) = Right(Cell.Formula, Len(Cell.Formula) - 1)
+    Set Curr = mOutSheet.Range("C2")
+    For Each RiskInput In mRiskInputs
+        Curr = NameOrAddress(RiskInput.Cell)
+        Curr.Offset(1, 0) = Right(RiskInput.Cell.Formula, Len(RiskInput.Cell.Formula) - 1)
         Set Curr = Curr.Offset(0, 1)
-    Next Cell
+    Next RiskInput
     'Format Input
-    With mOutSheet.Range("B1").Resize(1, mRiskInputs.Count)
+    With mOutSheet.Range("C1").Resize(1, mRiskInputs.Count)
         If mRiskInputs.Count > 1 Then .Merge
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
@@ -72,16 +71,23 @@ Private Sub InitialiseResults()
     
     '   Setup risk outputs
     Curr.Offset(-1, 0) = "Outputs"
-    Curr.Offset(2).Name = "OutputResults"
+    mOutSheet.Names.Add Name:="OutputResults", RefersTo:=Curr.Offset(2)
     For Each RiskOutput In mRiskOutputs
         Curr = AddressWithSheet(RiskOutput.Cell)
         Curr.Offset(1, 0) = RiskOutput.Name
         Set Curr = Curr.Offset(0, 1)
     Next RiskOutput
     'Format Output
-    With mOutSheet.Range("B1").Offset(0, 1).Resize(1, mRiskOutputs.Count)
+    With mOutSheet.Range("C1").Offset(0, 1).Resize(1, mRiskOutputs.Count)
         If mRiskOutputs.Count > 1 Then .Merge
         .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+    End With
+    
+    '   AutoFit
+    mOutSheet.Range("C2").Resize(1, mRiskInputs.Count).Columns.AutoFit
+    With mOutSheet.Range("C2").Offset(0, mRiskInputs.Count).Resize(2, mRiskOutputs.Count)
+        .Columns.AutoFit
         .HorizontalAlignment = xlCenter
     End With
     
@@ -89,6 +95,7 @@ Private Sub InitialiseResults()
     Set Curr = Curr.Offset(0, 2)
     Curr.Offset(-1, 0) = "Simulation Statistics"
     Curr.Offset(2, -1).Name = "SimStats"
+    mOutSheet.Names.Add Name:="SimStats", RefersTo:=Curr.Offset(2, -1)
     For Each RiskOutput In mRiskOutputs
         Curr = AddressWithSheet(RiskOutput.Cell)
         Curr.Offset(1, 0) = RiskOutput.Name
@@ -101,15 +108,10 @@ Private Sub InitialiseResults()
         .HorizontalAlignment = xlCenter
     End With
     
-    With mOutSheet.Range("B2").CurrentRegion
-        .Columns.AutoFit
-        .HorizontalAlignment = xlCenter
-    End With
-    
     '  Setup Output Cumulative Distributions
     Set Curr = Curr.Offset(0, 1)
     Curr.Offset(-1, 0) = "Output Cumulative Distributions"
-    Curr.Offset(1, 0).Name = "OutCumDist"
+    mOutSheet.Names.Add Name:="OutCumDist", RefersTo:=Curr.Offset(1, 0)
     With Curr.Offset(-1, 0).Resize(1, ChartWidth)
         .Merge
         .Font.Bold = True
@@ -120,13 +122,43 @@ Private Sub InitialiseResults()
         '  Setup Output Histograms
         Set Curr = Curr.Offset(0, ChartWidth + 1)
         Curr.Offset(-1, 0) = "Output Distributions"
-        Curr.Offset(1, 0).Name = "OutDist"
+        mOutSheet.Names.Add Name:="OutDist", RefersTo:=Curr.Offset(1, 0)
         With Curr.Offset(-1, 0).Resize(1, ChartWidth)
             .Merge
             .Font.Bold = True
             .HorizontalAlignment = xlCenter
         End With
     End If
+    
+    ' Add Hyperlinks
+    Set Curr = mOutSheet.Range("A1")
+    With Curr
+        .Value = "Navigation"
+        .Font.Bold = True
+    End With
+    
+    With mOutSheet.Hyperlinks
+        .Add Anchor:=Curr.Offset(1), Address:=vbNullString, _
+            SubAddress:="OutputResults", TextToDisplay:="Risk Outputs"
+        
+        .Add Anchor:=Curr.Offset(2), Address:=vbNullString, _
+            SubAddress:="SimStats", TextToDisplay:="Simulation Statistics"
+        
+        .Add Anchor:=Curr.Offset(3), Address:=vbNullString, _
+            SubAddress:="Percentiles", TextToDisplay:="Risk Output Percentiles"
+        
+        .Add Anchor:=Curr.Offset(4), Address:=vbNullString, _
+            SubAddress:="PercentRank", TextToDisplay:="Calculate Percent Rank"
+        
+        .Add Anchor:=Curr.Offset(5), Address:=vbNullString, _
+            SubAddress:="OutCumDist", TextToDisplay:="Output Cumulative Distributions"
+            
+        If Val(Application.Version) >= 16 Then
+            .Add Anchor:=Curr.Offset(6), Address:=vbNullString, _
+                SubAddress:="OutDist", TextToDisplay:="Output Distributions"
+        End If
+    End With
+    mOutSheet.Columns(1).AutoFit
 End Sub
 
 Private Sub StatHelper(Cell As Range, StatName As String, StatFormula As String, Address As String)
@@ -182,14 +214,15 @@ Private Sub ProduceStatistics()
         Perc = Perc + 5
     Next PCount
     Cell.Offset(15, 1).Formula = "=AGGREGATE(16,6," & Address & "," & Cell.Offset(15).Address(False, True) & ")"
-    Cell.Offset(15).Resize(21, mRiskOutputs.Count + 1).Name = "Percentiles"
+    mOutSheet.Names.Add Name:="Percentiles", RefersTo:=Cell.Offset(15).Resize(21, mRiskOutputs.Count + 1)
     Cell.Offset(15, 1).Copy Cell.Offset(15, 1).Resize(21, Count)
     ' Percent Rank
     Cell.Offset(36) = "Percent Rank"
+    mOutSheet.Names.Add Name:="PercentRank", RefersTo:=Cell.Offset(36)
     Cell.Offset(37) = "Output Cell:"
     Cell.Offset(37, 1).Value = Cell.Offset(-2, 1).Value
     ThickBorders Cell.Offset(37, 1)
-    Cell.Offset(38) = "Output Name:"
+    Cell.Offset(38) = "Select Output Name:"
     Address = Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count).Address
     Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2,0)"
     Cell.Offset(39) = "Value:"
@@ -210,7 +243,12 @@ Private Sub ProduceStatistics()
         .ShowInput = True
         .ShowError = True
     End With
-    Cell.CurrentRegion.Columns.AutoFit
+    'AutoFit
+    mOutSheet.Columns(Cell.Column).AutoFit
+    With Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count)
+        .Columns.AutoFit
+        .HorizontalAlignment = xlCenter
+    End With
 End Sub
 
 Private Sub ProduceCumulativeDistributions()

@@ -22,23 +22,21 @@ Public Function SetUpXLRisk() As Worksheet
         Set WS = WB.Sheets.Add(, WB.Worksheets(WB.Worksheets.Count))
         With WS
             .Name = "XLRisk"
-            '.Visible = xlSheetVisible 'xlVeryHidden
-            .Range("A1").Name = "XLRiskSetup"
             .Range("A1").Name.Visible = True
             .Cells(1, 1) = "Simulation Settings"
             .Cells(1, 1).Font.Bold = True
             .Cells(2, 1) = "Seed"
             .Cells(2, 2) = 0
-            .Cells(2, 2).Name = "Seed"
+            .Names.Add Name:="Seed", RefersTo:=.Cells(2, 2)
             .Cells(3, 1) = "Update Screen"
             .Cells(3, 2) = False
-            .Cells(3, 2).Name = "ScreenUpdate"
+            .Names.Add Name:="ScreenUpdate", RefersTo:=.Cells(3, 2)
             .Cells(4, 1) = "Iterations"
             .Cells(4, 2) = 1000
-            .Cells(4, 2).Name = "Iterations"
+            .Names.Add Name:="Iterations", RefersTo:=.Cells(4, 2)
             .Cells(5, 1) = "Latin Hypercube"
             .Cells(5, 2) = True
-            .Cells(5, 2).Name = "LatinHypercube"
+            .Names.Add Name:="LatinHypercube", RefersTo:=.Cells(5, 2)
         
             .Range("A1").Columns.AutoFit
             .Range("A2.A4").Font.Italic = True
@@ -48,13 +46,13 @@ Public Function SetUpXLRisk() As Worksheet
             .Cells(3, 5) = "Formula"
             .Range("G1.H3").Font.Bold = True
     
-            WB.Names.Add Name:="RiskInputs", RefersTo:="=XLRisk!$D$3"
+            .Names.Add Name:="RiskInputs", RefersTo:=.Cells(3, 4)
       
             .Cells(1, 7) = "Simulation Outputs"
             .Cells(3, 7) = "Range"
             .Cells(3, 8) = "Name"
             .Range("D1.E3").Font.Bold = True
-            WB.Names.Add Name:="RiskOutputs", RefersTo:="=XLRisk!$G$3"
+            .Names.Add Name:="RiskOutputs", RefersTo:=.Cells(3, 7)
         End With
         CurrentWS.Activate
         Application.ScreenUpdating = True
@@ -95,7 +93,7 @@ Public Sub ShowRiskInputs(XLRiskSheet As Worksheet)
     ' Show RiskInputs in the XLRisk sheet
     Dim R As Range
     Dim Coll As New Collection
-    Dim Cell As Range
+    Dim RiskInput As ClsRiskInput
     
     Set R = XLRiskSheet.Range("RiskInputs").CurrentRegion
     ' Clear Inputs if present
@@ -103,11 +101,11 @@ Public Sub ShowRiskInputs(XLRiskSheet As Worksheet)
     
     Set R = XLRiskSheet.Range("RiskInputs")
     CollectRiskInputs Coll
-    For Each Cell In Coll
+    For Each RiskInput In Coll
         Set R = R.Offset(1)
-        R = AddressWithSheet(Cell)
-        R.Offset(0, 1) = Right(Cell.Formula, Len(Cell.Formula) - 1)
-    Next Cell
+        R = AddressWithSheet(RiskInput.Cell)
+        R.Offset(0, 1) = Right(RiskInput.Cell.Formula, Len(RiskInput.Cell.Formula) - 1)
+    Next RiskInput
     R.CurrentRegion.Columns.AutoFit
 End Sub
 
