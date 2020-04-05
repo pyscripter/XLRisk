@@ -11,7 +11,7 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 * Very easy to use
 * Extensive simulation statistics and graphical output
 * Implements the Latin Hypercube method for faster convergence and more accurate results
-* Implements the [Iman-Conover method](https://www.google.com/url?sa=t&rct=j&q=&esrc=s&source=web&cd=4&cad=rja&uact=8&ved=2ahUKEwiFq8uzytHoAhVD2aQKHRF-AeMQFjADegQIAxAB&url=https%3A%2F%2Fcran.r-project.org%2Fweb%2Fpackages%2FSimJoint%2Fvignettes%2FSimulatedJointDistribution.pdf&usg=AOvVaw15Y9i4xdH4tgpUrmOMDKSw) for generating samples from correlated distributions
+* Implements the [Iman-Conover method](https://www.uio.no/studier/emner/matnat/math/STK4400/v05/undervisningsmateriale/A%20distribution-free%20approach%20to%20rank%20correlation.pdf) for generating samples from correlated distributions
 
 ## Installation instructions and documentation
 * [Download and Install](https://github.com/pyscripter/XLRisk/wiki/Installation)
