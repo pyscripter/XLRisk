@@ -219,10 +219,10 @@ Private Sub ProduceStatistics()
     ' Percent Rank
     Cell.Offset(36) = "Percent Rank"
     mOutSheet.Names.Add Name:="PercentRank", RefersTo:=Cell.Offset(36)
-    Cell.Offset(37) = "Output Cell:"
+    Cell.Offset(37) = "Select Output Cell:"
     Cell.Offset(37, 1).Value = Cell.Offset(-2, 1).Value
     ThickBorders Cell.Offset(37, 1)
-    Cell.Offset(38) = "Select Output Name:"
+    Cell.Offset(38) = "Output Name:"
     Address = Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count).Address
     Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2,0)"
     Cell.Offset(39) = "Value:"

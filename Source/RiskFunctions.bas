@@ -298,7 +298,7 @@ Public Sub FunctionDescriptions()
         Array("Range containing a lower triangular correlation matrix", "Position of this risk input function in the correlation matrix"))
     Call CreateFunctionDescription("RiskCorrectCorrmat", "Fixes an invalid correlation matrix and returns the corrected matrix", _
         Array("Range containing a lower triangular correlation matrix", "Optional tolerance with default value 1.0E-10"))
-    Call CreateFunctionDescription("RiskIsValidCorrmat", "Checks whether a correlation matrix is Valid.  Returns a Boolean value", _
+    Call CreateFunctionDescription("RiskIsValidCorrmat", "Checks whether a correlation matrix is valid.  Returns a Boolean value", _
         Array("Range containing a lower triangular correlation matrix", "Optional tolerance with default value 1.0E-10"))
 End Sub
 
