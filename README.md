@@ -8,6 +8,7 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 
 ## Features
 * Free and open source
+* Can be used with both Excel for Windows and Excel for Mac
 * Very easy to use
 * Extensive simulation statistics and graphical output
 * Implements the [Latin Hypercube sampling](https://en.wikipedia.org/wiki/Latin_hypercube_sampling) method for faster convergence and more accurate results
