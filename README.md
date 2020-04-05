@@ -21,6 +21,7 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 * [Risk/distribution functions](https://github.com/pyscripter/XLRisk/wiki/RiskFunctions)
 * [Worked Example](https://github.com/pyscripter/XLRisk/wiki/WorkedExample)
 * [Simulation Results](https://github.com/pyscripter/XLRisk/wiki/SimResults)
+* [Correlated Inputs Example](https://github.com/pyscripter/XLRisk/wiki/CorrelatedInputsExample)
 
 
 **Credits:**  
