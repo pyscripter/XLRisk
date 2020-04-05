@@ -26,5 +26,7 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 
 
 **Credits:**  
-The help of [ESMT](https://www.esmt.org/) students in improving this addin is greatfully acknowledged.
+I would like to thank the [ESMT](https://www.esmt.org/) students for providing an incentive for building this addin and helping to improve it.
+Thanks are due also to Howard Rudd for his excellent [series of posts](https://www.howardrudd.net/how-tos/vba-monte-carlo-risk-analysis-spreadsheet-with-correlation-part-1/) on Monte Carlo simulation.
+XLRisk makes use of some of his code.
 
