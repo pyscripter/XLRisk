@@ -10,7 +10,7 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 * Free and open source
 * Very easy to use
 * Extensive simulation statistics and graphical output
-* Implements the Latin Hypercube method for faster convergence and more accurate results
+* Implements the [Latin Hypercube sampling](https://en.wikipedia.org/wiki/Latin_hypercube_sampling) method for faster convergence and more accurate results
 * Implements the [Iman-Conover method](https://www.uio.no/studier/emner/matnat/math/STK4400/v05/undervisningsmateriale/A%20distribution-free%20approach%20to%20rank%20correlation.pdf) for generating samples from correlated distributions
 
 ## Installation instructions and documentation
