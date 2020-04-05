@@ -131,12 +131,18 @@ Public Sub AddOutput()
     Dim Name As String
     Dim XLRisk As Worksheet
     Dim R As Range
+    Dim Sel As Range
+    
+    If Not TypeOf Selection Is Range Then Exit Sub
+    Set Sel = Selection
     
     Name = InputBox("Please provide a name for the risk output", "Add Output")
+    If Name = vbNullString Then Exit Sub
+        
     Set XLRisk = SetUpXLRisk
     Set R = XLRisk.Range("RiskOutputs").CurrentRegion
     Set R = R.Rows(R.Rows.Count).Offset(1) 'Offset the last row
-    R.Cells(1, 1).Value = "'" & AddressWithSheet(Selection)
+    R.Cells(1, 1).Formula = "=AddressWithSheet(" & AddressWithSheet(Sel) & ")"
     R.Cells(1, 2) = Name
     XLRisk.Range("RiskOutputs").CurrentRegion.Columns.AutoFit
 End Sub
