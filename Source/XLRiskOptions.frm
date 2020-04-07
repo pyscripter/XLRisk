@@ -28,7 +28,7 @@ Private Sub btnOK_Click()
     XLRisk.Range("LatinHypercube") = cbLatinHypercube.Value
     If ProduceRandomSample <> cbRandomSamples.Value Then
         ProduceRandomSample = cbRandomSamples.Value
-        Application.Calculate
+        Application.CalculateFull
     End If
     
     Unload Me

@@ -4,7 +4,7 @@ Option Base 1
 
 Public Function RiskIsValidCorrmat(CorrmatRng As Range, _
     Optional Tolerance As Double = 0.0000000001, Optional ShowMessages As Boolean = False) As Boolean
-Attribute RiskIsValidCorrmat.VB_Description = "Checks whether a correlation matrix is Valid.  Returns a Boolean value"
+Attribute RiskIsValidCorrmat.VB_Description = "Checks whether a correlation matrix is valid.  Returns a Boolean value"
 Attribute RiskIsValidCorrmat.VB_ProcData.VB_Invoke_Func = " \n20"
 ' Checks wether a range is a valid correlation matrix
     Dim I As Integer
@@ -159,4 +159,24 @@ Attribute RiskCorrectCorrmat.VB_ProcData.VB_Invoke_Func = " \n20"
     RiskCorrectCorrmat = Corrmat
 End Function
 
-
+Public Function RiskSCorrel(Array1 As Variant, Array2 As Variant) As Variant
+    Dim Ranks1() As Double
+    Dim Ranks2() As Double
+    Dim N As Long
+    Dim I As Long
+    With WorksheetFunction
+        N = .Count(Array1)
+        If N <> .Count(Array2) Then
+            RiskSCorrel = CVErr(xlErrValue)
+            Exit Function
+        End If
+        ReDim Ranks1(1 To N)
+        ReDim Ranks2(1 To N)
+        
+        For I = 1 To N
+            Ranks1(I) = .Rank_Avg(Array1(I), Array1, 1)
+            Ranks2(I) = .Rank_Avg(Array2(I), Array2, 1)
+        Next I
+        RiskSCorrel = .Correl(Ranks1, Ranks2)
+    End With
+End Function

@@ -9,11 +9,45 @@ Public ProduceRandomSample As Boolean
 Public Function RiskFunctionList() As Variant
 ' Returns a list of risk functions
 ' Needs to be updated as new risk functions are added
-    RiskFunctionList = Array("RiskUniform", "RiskNormal", "RiskTriang", "RiskBeta", _
+    RiskFunctionList = Array("RiskBernoulli", "RiskBinomial", "RiskUniform", _
+    "RiskNormal", "RiskTriang", "RiskBeta", _
     "RiskPert", "RiskLogNorm", "RiskDUniform", "RiskCumul")
 End Function
 
-Public Function RiskUniform(Min As Double, Max As Double, Optional Corrmat As Long = 0)
+Public Function RiskBinomial(N As Long, P As Double, Optional Corrmat As Long = 0) As Long
+Attribute RiskBinomial.VB_Description = "Generate random sample from a Binomial destribution"
+Attribute RiskBinomial.VB_ProcData.VB_Invoke_Func = " \n20"
+    Dim RndValue As Double
+    Application.Volatile (ProduceRandomSample)
+    
+    'Error checking
+    If (N < 0) Or (P < 0) Or (P > 1) Then RiskBinomial = CVErr(xlErrValue)
+    
+    If (N = 0) Or (P = 0) Then
+        RiskBinomial = 0
+    ElseIf ProduceRandomSample Then
+        If gSimulation Is Nothing Then
+            RndValue = Rnd()
+        Else
+            RndValue = gSimulation.GetRndSample(Application.Caller)
+        End If
+        RiskBinomial = WorksheetFunction.Binom_Inv(N, P, RndValue)
+    Else
+        RiskBinomial = N * P
+    End If
+End Function
+
+Public Function RiskBernoulli(P As Double, Optional Corrmat As Long = 0) As Long
+    Dim RndValue As Double
+    Application.Volatile (ProduceRandomSample)
+    
+    'Error checking
+    If (P < 0) Or (P > 1) Then RiskBernoulli = CVErr(xlErrValue)
+    
+    RiskBernoulli = RiskBinomial(1, P)
+End Function
+
+Public Function RiskUniform(Min As Double, Max As Double, Optional Corrmat As Long = 0) As Double
 Attribute RiskUniform.VB_Description = "Generate random sample from a uniform destribution"
 Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Random Sample from a Uniform distribution
@@ -38,7 +72,7 @@ Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Public Function RiskDUniform(Values As Variant, Optional Corrmat As Long = 0)
+Public Function RiskDUniform(Values As Variant, Optional Corrmat As Long = 0) As Variant
 Attribute RiskDUniform.VB_Description = "Generate random sample from a uniform discrete destribution"
 Attribute RiskDUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Discrete Uniform distribution
@@ -61,7 +95,7 @@ Attribute RiskDUniform.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Public Function RiskNormal(Mean As Double, StDev As Double, Optional Corrmat As Long = 0)
+Public Function RiskNormal(Mean As Double, StDev As Double, Optional Corrmat As Long = 0) As Double
 Attribute RiskNormal.VB_Description = "Generate random sample from a normal destribution"
 Attribute RiskNormal.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Normal distribution
@@ -80,7 +114,7 @@ Attribute RiskNormal.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Public Function RiskLogNorm(Mean As Double, StDev As Double, Optional Corrmat As Long = 0)
+Public Function RiskLogNorm(Mean As Double, StDev As Double, Optional Corrmat As Long = 0) As Double
 Attribute RiskLogNorm.VB_Description = "Generate random sample from a lognormal destribution"
 Attribute RiskLogNorm.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Log Normal distribution
@@ -99,7 +133,7 @@ Attribute RiskLogNorm.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Function RiskTriang(Min As Double, Mode As Double, Max As Double, Optional Corrmat As Long = 0)
+Function RiskTriang(Min As Double, Mode As Double, Max As Double, Optional Corrmat As Long = 0) As Double
 Attribute RiskTriang.VB_Description = "Generate random sample from a triangular destribution"
 Attribute RiskTriang.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Triangular distribution
@@ -135,7 +169,7 @@ Attribute RiskTriang.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Function RiskBeta(alpha As Double, beta As Double, Optional A As Double = 0, Optional B As Double = 1, Optional Corrmat As Long = 0)
+Function RiskBeta(alpha As Double, beta As Double, Optional A As Double = 0, Optional B As Double = 1, Optional Corrmat As Long = 0) As Double
 Attribute RiskBeta.VB_Description = "Generate random sample from a beta destribution"
 Attribute RiskBeta.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Beta distribution
@@ -160,7 +194,7 @@ Attribute RiskBeta.VB_ProcData.VB_Invoke_Func = " \n20"
     End If
 End Function
 
-Function RiskPert(Min As Double, Mode As Double, Max As Double, Optional Corrmat As Long = 0)
+Function RiskPert(Min As Double, Mode As Double, Max As Double, Optional Corrmat As Long = 0) As Double
 Attribute RiskPert.VB_Description = "Generate random sample from a PERT destribution"
 Attribute RiskPert.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Randoom Sample from a Pert distribution a special case of the Beta distribution
@@ -184,7 +218,7 @@ Attribute RiskPert.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Public Function RiskCumul(MinValue As Double, MaxValue As Double, _
-                          XValues As Variant, YValues As Variant, Optional Corrmat As Long = 0)
+                          XValues As Variant, YValues As Variant, Optional Corrmat As Long = 0) As Double
 Attribute RiskCumul.VB_Description = "Generate random sample from a cumulative destribution"
 Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
 '  Random Sample from a Discrete Uniform distribution
@@ -277,6 +311,10 @@ End Sub
 
 Public Sub FunctionDescriptions()
     Const CorrMatDesc As String = "Optional. Placeholder for linking to a correlation matrix using the RiskCorrmat function)"
+    Call CreateFunctionDescription("RiskBernoulli", "Generate random sample from a Bernoulli destribution", _
+        Array("Probability of success", CorrMatDesc))
+    Call CreateFunctionDescription("RiskBinomial", "Generate random sample from a Binomial destribution", _
+        Array("Number of Trials", "Probability of success", CorrMatDesc))
     Call CreateFunctionDescription("RiskUniform", "Generate random sample from a uniform destribution", _
         Array("Minimum value", "Maximum Value", CorrMatDesc))
     Call CreateFunctionDescription("RiskNormal", "Generate random sample from a normal destribution", _
@@ -300,6 +338,8 @@ Public Sub FunctionDescriptions()
         Array("Range containing a lower triangular correlation matrix", "Optional tolerance with default value 1.0E-10"))
     Call CreateFunctionDescription("RiskIsValidCorrmat", "Checks whether a correlation matrix is valid.  Returns a Boolean value", _
         Array("Range containing a lower triangular correlation matrix", "Optional tolerance with default value 1.0E-10"))
+    Call CreateFunctionDescription("RiskSCorrel", "Returns the Spearman's rank correlation of two arrays", _
+        Array("First Range or array", "Second Range or array"))
 End Sub
 
 Public Function RiskCorrmat(CorrmatRng As Range, Position As Long) As Long

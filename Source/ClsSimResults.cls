@@ -83,7 +83,6 @@ Private Sub InitialiseResults()
         .Font.Bold = True
         .HorizontalAlignment = xlCenter
     End With
-    
     '   AutoFit
     mOutSheet.Range("C2").Resize(1, mRiskInputs.Count).Columns.AutoFit
     With mOutSheet.Range("C2").Offset(0, mRiskInputs.Count).Resize(2, mRiskOutputs.Count)
@@ -103,8 +102,13 @@ Private Sub InitialiseResults()
     Next RiskOutput
     'Format Simulation Results
     With mOutSheet.Range("SimStats").Offset(-3).Resize(1, mRiskOutputs.Count + 1)
-        If mRiskOutputs.Count > 1 Then .Merge
+        .Merge
         .Font.Bold = True
+        .HorizontalAlignment = xlCenter
+    End With
+    'AutoFit
+    With mOutSheet.Range("SimStats").Offset(-2, 1).Resize(2, mRiskOutputs.Count)
+        .Columns.AutoFit
         .HorizontalAlignment = xlCenter
     End With
     
@@ -139,10 +143,10 @@ Private Sub InitialiseResults()
     
     With mOutSheet.Hyperlinks
         .Add Anchor:=Curr.Offset(1), Address:=vbNullString, _
-            SubAddress:="OutputResults", TextToDisplay:="Risk Outputs"
+            SubAddress:=mOutSheet.Range("OutputResults").Offset(-3).Address, TextToDisplay:="Risk Outputs"
         
         .Add Anchor:=Curr.Offset(2), Address:=vbNullString, _
-            SubAddress:="SimStats", TextToDisplay:="Simulation Statistics"
+            SubAddress:=mOutSheet.Range("SimStats").Offset(-3).Address, TextToDisplay:="Simulation Statistics"
         
         .Add Anchor:=Curr.Offset(3), Address:=vbNullString, _
             SubAddress:="Percentiles", TextToDisplay:="Risk Output Percentiles"
@@ -151,11 +155,11 @@ Private Sub InitialiseResults()
             SubAddress:="PercentRank", TextToDisplay:="Calculate Percent Rank"
         
         .Add Anchor:=Curr.Offset(5), Address:=vbNullString, _
-            SubAddress:="OutCumDist", TextToDisplay:="Output Cumulative Distributions"
+            SubAddress:=mOutSheet.Range("OutCumDist").Offset(-2).Address, TextToDisplay:="Output Cumulative Distributions"
             
         If Val(Application.Version) >= 16 Then
             .Add Anchor:=Curr.Offset(6), Address:=vbNullString, _
-                SubAddress:="OutDist", TextToDisplay:="Output Distributions"
+                SubAddress:=mOutSheet.Range("OutDist").Offset(-2).Address, TextToDisplay:="Output Distributions"
         End If
     End With
     mOutSheet.Columns(1).AutoFit
@@ -204,39 +208,46 @@ Private Sub ProduceStatistics()
     Cell.Offset(13) = "Confidence Level (95%)"
     Cell.Offset(13, 1).Formula = "=CONFIDENCE.T(5%," & Cell.Offset(3, 1).Address(False, False) & "," & Cell.Offset(10, 1).Address(False, False) & ")"
     If Count > 1 Then Cell.Offset(0, 1).Resize(14, 1).Copy Cell.Offset(0, 2).Resize(14, Count - 1)
+      
     'Percentiles
-    Cell.Offset(14) = "Percentiles"
+    Set Cell = Cell.Offset(15)
+    Cell.Value = "Percentiles"
+    Cell.Font.Bold = True
     Perc = 0
-    For PCount = 1 To 21
-        Cell.Offset(14 + PCount) = Perc / 100
-        Cell.Offset(14 + PCount).NumberFormat = "0%"
-        Cell.Offset(14 + PCount).HorizontalAlignment = xlRight
-        Perc = Perc + 5
+    For PCount = 1 To 41
+        Cell.Offset(PCount) = Perc / 1000
+        Cell.Offset(PCount).NumberFormat = "0.0%"
+        Cell.Offset(PCount).HorizontalAlignment = xlRight
+        Perc = Perc + 25
     Next PCount
-    Cell.Offset(15, 1).Formula = "=AGGREGATE(16,6," & Address & "," & Cell.Offset(15).Address(False, True) & ")"
-    mOutSheet.Names.Add Name:="Percentiles", RefersTo:=Cell.Offset(15).Resize(21, mRiskOutputs.Count + 1)
-    Cell.Offset(15, 1).Copy Cell.Offset(15, 1).Resize(21, Count)
+    Cell.Offset(1, 1).Formula = "=AGGREGATE(16,6," & Address & "," & Cell.Offset(1).Address(False, True) & ")"
+    mOutSheet.Names.Add Name:="Percentiles", RefersTo:=Cell.Offset(1).Resize(41, mRiskOutputs.Count + 1)
+    Cell.Offset(1, 1).Copy Cell.Offset(1, 1).Resize(41, Count)
+    
     ' Percent Rank
-    Cell.Offset(36) = "Percent Rank"
-    mOutSheet.Names.Add Name:="PercentRank", RefersTo:=Cell.Offset(36)
-    Cell.Offset(37) = "Select Output Cell:"
-    Cell.Offset(37, 1).Value = Cell.Offset(-2, 1).Value
-    ThickBorders Cell.Offset(37, 1)
-    Cell.Offset(38) = "Output Name:"
-    Address = Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count).Address
-    Cell.Offset(38, 1).Formula = "=HLOOKUP(" & Cell.Offset(37, 1).Address & "," & Address & ",2,0)"
-    Cell.Offset(39) = "Value:"
-    Cell.Offset(39, 1).Value = Cell.Offset(16, 1).Value '57th Percentile
-    ThickBorders Cell.Offset(39, 1)
-    Cell.Offset(40) = "Result:"
-    Address = Cell.Offset(-2, 1).Resize(1, mRiskOutputs.Count).Address
-    Cell.Offset(40, 1) = "=PERCENTRANK.INC(OFFSET(" & FirstOutput.Address & ",0,MATCH(" & Cell.Offset(37, 1).Address _
-        & "," & Address & ",0)-1)," & Cell.Offset(39, 1).Address & ")"
-    Cell.Offset(40, 1).NumberFormat = "0.00%"
-    Cell.Offset(37).Resize(4, 1).HorizontalAlignment = xlRight
-    With Cell.Offset(37, 1).Validation
+    Set Cell = Cell.Offset(43)
+    Cell = "Percent Rank"
+    Cell.Font.Bold = True
+    mOutSheet.Names.Add Name:="PercentRank", RefersTo:=Cell
+    Cell.Offset(1) = "Select Output Cell:"
+    Cell.Offset(1, 1).Value = mOutSheet.Range("SimStats").Offset(-2, 1).Value
+    ThickBorders Cell.Offset(1, 1)
+    Cell.Offset(2) = "Output Name:"
+    Address = mOutSheet.Range("SimStats").Offset(-2, 1).Resize(2, mRiskOutputs.Count).Address
+    Cell.Offset(2, 1).Formula = "=HLOOKUP(" & Cell.Offset(1, 1).Address & "," & Address & ",2,0)"
+    Cell.Offset(3) = "Value:"
+    mOutSheet.Range("Percentiles").Cells(3, 2).Calculate
+    Cell.Offset(3, 1).Value = mOutSheet.Range("Percentiles").Cells(3, 2).Value '5th Percentile
+    ThickBorders Cell.Offset(3, 1)
+    Cell.Offset(4) = "% rank:"
+    Address = mOutSheet.Range("SimStats").Offset(-2, 1).Resize(1, mRiskOutputs.Count).Address
+    Cell.Offset(4, 1) = "=PERCENTRANK.INC(OFFSET(" & FirstOutput.Address & ",0,MATCH(" & Cell.Offset(1, 1).Address _
+        & "," & Address & ",0)-1)," & Cell.Offset(3, 1).Address & ")"
+    Cell.Offset(4, 1).NumberFormat = "0.00%"
+    Cell.Offset(1).Resize(4, 1).HorizontalAlignment = xlRight
+    With Cell.Offset(1, 1).Validation
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-        xlBetween, Formula1:="=" & Address
+            xlBetween, Formula1:="=" & Address
         .IgnoreBlank = True
         .InCellDropdown = True
         .InputTitle = "Select Output Cell"
@@ -245,10 +256,6 @@ Private Sub ProduceStatistics()
     End With
     'AutoFit
     mOutSheet.Columns(Cell.Column).AutoFit
-    With Cell.Offset(-2, 1).Resize(2, mRiskOutputs.Count)
-        .Columns.AutoFit
-        .HorizontalAlignment = xlCenter
-    End With
 End Sub
 
 Private Sub ProduceCumulativeDistributions()
@@ -268,7 +275,7 @@ Private Sub ProduceCumulativeDistributions()
         Set NewChart = ChartShape.Chart
         
         With NewChart
-            .ChartType = xlXYScatterSmooth
+            .ChartType = xlXYScatterLines
             .HasLegend = False
             Set Source = .SeriesCollection.NewSeries
             Source.Values = Percentiles.Columns(1)
