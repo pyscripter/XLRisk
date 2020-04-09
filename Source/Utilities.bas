@@ -11,29 +11,33 @@ Sub CollectRiskInputs(Coll As Collection)
     Dim RiskFunction As Variant
     Dim FunctionList As Variant
     Dim RiskInput As ClsRiskInput
+    Dim Formula As String
+    Dim Pos As Long
         
     FunctionList = RiskFunctionList()
         
     For Each Sht In ActiveWorkBook.Worksheets 'loop through the sheets in the workbook
-        On Error Resume Next 'in case there are no formulas
+        On Error GoTo Quit 'in case there are no formulas
         'Limit the search to the UsedRange and use SpecialCells to reduce looping further
         Set Formulas = Sht.UsedRange.SpecialCells(xlCellTypeFormulas)
-        If Err = 0 Then
-            For Each Cell In Formulas 'loop through the SpecialCells only
-                '  Check whether the formula contains a Risk function
+        For Each Cell In Formulas 'loop through the SpecialCells only
+            '  Check whether the formula contains a Risk function
+            Formula = Cell.Formula
+            Pos = InStr(1, Formula, "risk", vbTextCompare)
+            If Pos > 0 Then
                 For Each RiskFunction In FunctionList
-                    If Cell.HasFormula And InStr(1, Cell.Formula, RiskFunction, vbTextCompare) > 0 Then
-                        Set RiskInput = New ClsRiskInput
-                        RiskInput.Init Cell
-                        Call Coll.Add(RiskInput, AddressWithSheet(Cell))
-                        Exit For
-                    End If
-               Next RiskFunction
-            Next Cell
-        End If
-        Err.Clear
+                     If InStr(Pos, Formula, RiskFunction, vbTextCompare) > 0 Then
+                         Set RiskInput = New ClsRiskInput
+                         RiskInput.Init Cell
+                         Call Coll.Add(RiskInput, AddressWithSheet(Cell))
+                         Exit For
+                     End If
+                Next RiskFunction
+            End If
+        Next Cell
         Set Formulas = Nothing
     Next Sht
+Quit:
 End Sub
 
 Public Function OneRiskFunctionPerCell(Coll As Collection) As Boolean
@@ -137,11 +141,45 @@ Function AddressWithSheet(R As Range) As String
     AddressWithSheet = QuoteIfNeeded(R.Parent.Name) & "!" & R.Address
 End Function
 
-
 Function NameOrAddress(R As Range) As String
     On Error Resume Next
     NameOrAddress = R.Name.Name
     If Len(NameOrAddress) = 0 Then NameOrAddress = AddressWithSheet(R)
 End Function
 
-
+Public Function SortedTable(Table As Range, Col As Long, Optional Ascending As Boolean = True) As Variant
+    Dim ColVals() As Double
+    Dim NRows As Long
+    Dim NCols As Long
+    Dim V As Variant
+    Dim I As Long
+    Dim J As Long
+    Dim Ranks As Variant
+    
+    NRows = Table.Rows.Count
+    NCols = Table.Columns.Count
+    
+    'Error Checking
+    If (NRows < 2) Or (NCols < 2) Or (Col < 1) Or (Col > NCols) Then
+        SortedTable = CVErr(xlErrValue)
+        Exit Function
+    End If
+    
+    ReDim ColVals(1 To NRows)
+    For I = 1 To NRows
+        ColVals(I) = Table.Cells(I, Col).Value
+    Next I
+    
+    V = Table.Value
+    Ranks = ArrayRank(ColVals)
+    For J = 1 To NCols
+        For I = 1 To NRows
+            If Ascending Then
+                V(Ranks(I), J) = Table.Cells(I, J).Value
+            Else
+                V(NRows + 1 - Ranks(I)) = Table.Cells(I, J).Value
+            End If
+        Next I
+    Next J
+    SortedTable = V
+End Function

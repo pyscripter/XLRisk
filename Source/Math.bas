@@ -399,8 +399,8 @@ Public Function ImanConover(Xascending() As Double, C() As Double) As Double()
     ReDim TX(1 To nRowsX, 1 To nColsX)
     Dim YX() As Double
     ReDim YX(1 To nRowsX, 1 To nColsX)
-    Dim ranks() As Long
-    ReDim ranks(1 To nRowsX, 1 To nColsX)
+    Dim Ranks() As Long
+    ReDim Ranks(1 To nRowsX, 1 To nColsX)
     
     ' TESTS!
     
@@ -454,12 +454,12 @@ Public Function ImanConover(Xascending() As Double, C() As Double) As Double()
     TX = MatMult(MX, ZX)
     
     ' Calculate the rank orders of TX.
-    ranks = ArrayRank(TX)
+    Ranks = ArrayRank(TX)
     
     ' Reorder columns of X to match T.
     For J = 1 To nColsX
         For k = 1 To nRowsX
-            YX(k, J) = Xascending(ranks(k, J), J)
+            YX(k, J) = Xascending(Ranks(k, J), J)
         Next k
     Next J
     
@@ -1148,11 +1148,13 @@ Public Function QuickSort(KeyArray() As Double, Optional Column As Long, Optiona
     End If
     
     ' Check that the argument "column" points to one of the columns of "keyArray"
-    If Not (LBound(KeyArray, 2) <= Column And Column <= UBound(KeyArray, 2)) Then
-        Err.Raise Number:=vbObjectError + 43, _
-            Source:="QuickSort", _
-            Description:="Argument 'column' does not point to one of the columns of 'keyArray'"
-        Exit Function
+    If keyDims = 2 Then
+        If Not (LBound(KeyArray, 2) <= Column And Column <= UBound(KeyArray, 2)) Then
+            Err.Raise Number:=vbObjectError + 43, _
+                Source:="QuickSort", _
+                Description:="Argument 'column' does not point to one of the columns of 'keyArray'"
+            Exit Function
+        End If
     End If
     
     ' END OF TESTS

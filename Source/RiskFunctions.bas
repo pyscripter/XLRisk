@@ -10,7 +10,7 @@ Public Function RiskFunctionList() As Variant
 ' Returns a list of risk functions
 ' Needs to be updated as new risk functions are added
     RiskFunctionList = Array("RiskBernoulli", "RiskBeta", "RiskBinomial", _
-    "RiskCumul", "RiskDiscrete", "RiskDUniform", "RiskExpon", "RiskErlang", _
+    "RiskCumul", "RiskDiscrete", "RiskDUniform", "RiskErlang", "RiskExpon", _
     "RiskGamma", "RiskLogNorm", "RiskNormal", "RiskTriang", "RiskPert", _
     "RiskUniform", "RiskWeibull")
 End Function
@@ -470,12 +470,12 @@ Public Sub FunctionDescriptions()
         Array("Range or array of ascending values", "Range or array of probabilities", CorrMatDesc))
     Call CreateFunctionDescription("RiskDUniform", "Generate random sample from a uniform discrete destribution", _
         Array("Range or array of values", CorrMatDesc))
-    Call CreateFunctionDescription("RiskExpon", "Generate random sample from an exponential destribution", _
-        Array("Mean", CorrMatDesc))
     Call CreateFunctionDescription("RiskGamma", "Generate random sample from a Gamma destribution", _
         Array("Shape parameter", "Scale parameter", CorrMatDesc))
     Call CreateFunctionDescription("RiskErlang", "Generate random sample from an Erlang destribution", _
         Array("Integer shape parameter", "Scale parameter", CorrMatDesc))
+    Call CreateFunctionDescription("RiskExpon", "Generate random sample from an exponential destribution", _
+        Array("Mean", CorrMatDesc))
     Call CreateFunctionDescription("RiskNormal", "Generate random sample from a normal destribution", _
         Array("Mean", "Standard Deviation", CorrMatDesc))
     Call CreateFunctionDescription("RiskLogNorm", "Generate random sample from a lognormal destribution", _
