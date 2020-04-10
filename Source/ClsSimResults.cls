@@ -351,6 +351,8 @@ Private Sub ProduceCumulativeDistributions()
             .SetElement (msoElementChartTitleAboveChart)
             .ChartTitle.text = "Cum. Distribution of " & mRiskOutputs(I).Name & _
                 " (" & AddressWithSheet(mRiskOutputs(I).Cell) & ")"
+            .ChartTitle.Font.Size = 14
+            .ChartTitle.Font.Bold = False
         End With
         Set R = R.Offset(ChartHeight + 1)
     Next I
@@ -390,6 +392,7 @@ End Sub
 Sub ProduceTornadoDiagram()
     Dim Cell As Range
     Dim R As Range
+    Dim SortedTable As Range
     Dim NewChart As Chart
     Dim Source As Series
     Dim I As Integer
@@ -398,14 +401,17 @@ Sub ProduceTornadoDiagram()
     Cell.Value = "Select Output:"
     Cell.Offset(1).Value = "Name:"
     
-    mOutSheet.Range("Correlations").Resize(mRiskInputs.Count + 3, mRiskOutputs.Count + 1).Copy Cell.Offset(3)
-    Cell.Offset(3).CurrentRegion.Columns.AutoFit
+    Set SortedTable = Cell.Offset(0, ChartWidth + 1)
     
-    Cell.Offset(0, 1).Value = Cell.Offset(4, 1).Value 'First output cell address
+    mOutSheet.Range("Correlations").Resize(mRiskInputs.Count + 3, mRiskOutputs.Count + 1).Copy SortedTable.Offset(-1)
+    SortedTable.Resize(mRiskInputs.Count + 1, mRiskOutputs.Count + 1).Columns.AutoFit
+    SortedTable.Resize(mRiskInputs.Count + 1, mRiskOutputs.Count + 1).Columns.Hidden = True
+        
+    Cell.Offset(0, 1).Value = SortedTable.Offset(0, 1).Value 'First output cell address
     ThickBorders Cell.Offset(0, 1)
     With Cell.Offset(0, 1).Validation
         .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:= _
-            xlBetween, Formula1:="=" & Cell.Offset(4, 1).Resize(1, mRiskOutputs.Count).Address
+            xlBetween, Formula1:="=" & SortedTable.Offset(0, 1).Resize(1, mRiskOutputs.Count).Address
         .IgnoreBlank = True
         .InCellDropdown = True
         .InputTitle = "Select Output Cell"
@@ -414,39 +420,45 @@ Sub ProduceTornadoDiagram()
     End With
     
     'Formulas
-    Cell.Offset(2).Formula = "=MATCH(" & Cell.Offset(0, 1).Address & "," & _
-        Cell.Offset(4, 1).Resize(1, mRiskOutputs.Count).Address & ",0)" 'Column Index used in the formula below
     Cell.Offset(1, 1).Formula = "=HLOOKUP(" & Cell.Offset(0, 1).Address & "," & _
-        Cell.Offset(4, 1).Resize(2, mRiskOutputs.Count).Address & ",2,0)" 'Risk output name
-    Cell.Offset(6).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).FormulaArray = _
+        SortedTable.Offset(0, 1).Resize(2, mRiskOutputs.Count).Address & ",2,0)" 'Risk output name
+    Cell.Offset(2).Formula = "=MATCH(" & Cell.Offset(0, 1).Address & "," & _
+        SortedTable.Offset(0, 1).Resize(1, mRiskOutputs.Count).Address & ",0)" 'Column Index used in the formula below
+    Cell.Offset(3).Formula = "=""Tornado Diagram for ""&" & Cell.Offset(1, 1).Address & "&"" (""&" & _
+        Cell.Offset(0, 1).Address & "&"")""" ' Chart Title
+    SortedTable.Offset(2).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).FormulaArray = _
         "=SortedTable(" & mOutSheet.Range("Correlations").Offset(3).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).Address _
         & "," & Cell.Offset(2).Address & "+1)" 'Sorted Table
-    Cell.Offset(8 + mRiskInputs.Count) = "=""Tornado Diagram for ""&" & Cell.Offset(1, 1).Address & "&"" (""&" & _
-        Cell.Offset(0, 1).Address & "&"")""" ' Chart Title
-    Cell.Offset(3).Formula = "=""Correlations - Column ""&" & Cell.Offset(2).Address & "&"" sorted""" ' Table title
-        
+    SortedTable.Offset(-1).Formula = "=""Correlations - Column ""&" & Cell.Offset(2).Address & "&"" sorted""" ' Table title
+    
     Cell.Offset(2).NumberFormat = ";;;" 'Hide
+    Cell.Resize(2, 2).Columns.AutoFit
 
     'Create Chart
-    Set R = Cell.Offset(8 + mRiskInputs.Count).Resize(ChartHeight, ChartWidth)
+    Set R = Cell.Offset(3).Resize(ChartHeight, ChartWidth)
     Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
     
     mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET('" & mOutSheet.Name & "'!" & _
-        Cell.Offset(6).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
+        SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
         mOutSheet.Name & "'!" & Cell.Offset(2).Address & ")"
     
     With NewChart
         .ChartType = xlBarClustered
         .HasLegend = False
+        .PlotVisibleOnly = False
         Set Source = .SeriesCollection.NewSeries
         Source.Values = "='" & mOutSheet.Name & "'!TornadoY"
-        Source.XValues = Cell.Offset(6).Resize(mRiskInputs.Count, 1)
+        Source.XValues = SortedTable.Offset(2).Resize(mRiskInputs.Count, 1)
         .Axes(xlValue).MaximumScale = 1
         .Axes(xlValue).MinimumScale = -1
-        .ApplyDataLabels (xlDataLabelsShowValue)
+        .Axes(xlCategory).TickLabelPosition = xlLow
+        '.ApplyDataLabels xlDataLabelsShowValue
+        .SetElement (msoElementDataLabelInsideEnd)
         Source.DataLabels.NumberFormat = "0.00"
         Source.DataLabels.Position = xlLabelPositionInsideEnd
         .SetElement (msoElementChartTitleAboveChart)
-        .ChartTitle.Caption = "='" & mOutSheet.Name & "'!" & Cell.Offset(8 + mRiskInputs.Count).Address
+        .ChartTitle.Caption = "='" & mOutSheet.Name & "'!" & Cell.Offset(3).Address
+        .ChartTitle.Font.Size = 14
+        .ChartTitle.Font.Bold = False
     End With
 End Sub
