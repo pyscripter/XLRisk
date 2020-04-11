@@ -31,6 +31,7 @@ Public Sub Init(RiskInputs As Collection, RiskOutputs As Collection, Iterations 
 End Sub
 
 Public Sub ProduceResults()
+    mOutSheet.Activate
     InitialiseResults
     'Produce Output
     mOutSheet.Cells(4, 2).Resize(mIterations, 1 + mRiskInputs.Count + mRiskOutputs.Count) = mSimResults
@@ -44,7 +45,6 @@ Public Sub ProduceResults()
     If Val(Application.Version) >= 16 Then ProduceHistograms
     ' Produce Tornado Diagram
     ProduceTornadoDiagram
-    mOutSheet.Activate
 End Sub
 
 Private Sub InitialiseResults()
@@ -108,9 +108,8 @@ Private Sub InitialiseResults()
     '   Setup Simulation Statistics
     Set Curr = Curr.Offset(0, 2)
     Curr.Offset(-1, 0) = "Simulation Statistics"
-    Curr.Offset(2, -1).Name = "SimStats"
     mOutSheet.Names.Add Name:="SimStats", RefersTo:=Curr.Offset(2, -1)
-        Curr.Resize(2, mRiskOutputs.Count).Value = _
+    Curr.Resize(2, mRiskOutputs.Count).Value = _
         mOutSheet.Range("OutputResults").Offset(-2).Resize(2, mRiskOutputs.Count).Value
     'Format Simulation Results
     With mOutSheet.Range("SimStats").Offset(-3).Resize(1, mRiskOutputs.Count + 1)
@@ -285,10 +284,10 @@ Private Sub ProducePercentRank(Cell As Range)
     Cell.Offset(3, 1).Resize(1, mRiskOutputs.Count).Value = _
         mOutSheet.Range("Percentiles").Cells(3, 2).Resize(1, mRiskOutputs.Count).Value '5th Percentile
     Cell.Offset(4) = "% rank:"
-    Address = mOutSheet.Range("OutputResults").Resize(mIterations, 1).Address
-    Cell.Offset(4, 1).Formula = "=PERCENTRANK.INC(" & Address & "," & Cell.Offset(3, 1).Address & ")"
+    Address = mOutSheet.Range("OutputResults").Resize(mIterations, 1).Address(True, False)
+    Cell.Offset(4, 1).Formula = "=PERCENTRANK.INC(" & Address & "," & Cell.Offset(3, 1).Address(True, False) & ")"
     If mRiskOutputs.Count > 1 Then Cell.Offset(4, 1).Copy Cell.Offset(4, 2).Resize(1, mRiskOutputs.Count - 1)
-    Cell.Offset(4, 1).NumberFormat = "0.00%"
+    Cell.Offset(4, 1).Resize(1, mRiskOutputs.Count).NumberFormat = "0.00%"
     Cell.Offset(3).Resize(2, 1).HorizontalAlignment = xlRight
     ThickBorders Cell.Offset(3).Resize(2, 1)
     ThickBorders Cell.Offset(3, 1).Resize(2, mRiskOutputs.Count)
@@ -333,7 +332,6 @@ Private Sub ProduceCumulativeDistributions()
     Set Percentiles = mOutSheet.Range("Percentiles")
     Set R = mOutSheet.Range("OutCumDist").Resize(ChartHeight, ChartWidth)
     
-    mOutSheet.Activate
     For I = 1 To mRiskOutputs.Count
         Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
         
@@ -371,7 +369,6 @@ Private Sub ProduceHistograms()
     Set SimOutput = mOutSheet.Range("OutputResults").Resize(mIterations, 1)
     Set R = mOutSheet.Range("OutDist").Resize(ChartHeight, ChartWidth)
     
-    mOutSheet.Activate
     For Each RiskOutput In mRiskOutputs
         ' Range needs to be selected
         'https://stackoverflow.com/questions/37912746/vba-why-xlhistogram-does-not-work

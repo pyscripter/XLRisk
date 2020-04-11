@@ -15,7 +15,7 @@ Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
 Option Explicit
 
-Const XLRiskVersion As String = "0.80"
+Const XLRiskVersion As String = "1.00"
 
 Private Sub btnOK_Click()
     Unload Me

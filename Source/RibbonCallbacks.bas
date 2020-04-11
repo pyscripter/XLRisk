@@ -13,9 +13,11 @@ End Sub
 
 'Callback for BtnSetup onAction
 Sub RibbonShowOptions(control As IRibbonControl)
-  ShowOptions
-  XLRiskRibbonUI.InvalidateControl "ComboIterations"
-  XLRiskRibbonUI.InvalidateControl "BtnSamples"
+    ShowOptions
+    If Not XLRiskRibbonUI Is Nothing Then
+        XLRiskRibbonUI.InvalidateControl "ComboIterations"
+        XLRiskRibbonUI.InvalidateControl "BtnSamples"
+    End If
 End Sub
 
 'Callback for BtnSetup getEnabled
@@ -29,18 +31,23 @@ End Sub
 
 'Callback for BtnSamples onAction
 Sub RibbonShowSamples(control As IRibbonControl, pressed As Boolean)
-  ProduceRandomSample = Not ProduceRandomSample
-  Application.CalculateFull
+    ProduceRandomSample = Not ProduceRandomSample
+    Application.CalculateFull
 End Sub
 
 'Callback for BtnSamples getPressed
 Sub RibbonShowSamplesGetPressed(control As IRibbonControl, ByRef returnedVal)
-  returnedVal = ProduceRandomSample
+    returnedVal = ProduceRandomSample
+End Sub
+
+'Callback for BtnHelp onAction
+Sub RibbonHelp(control As IRibbonControl)
+    ActiveWorkBook.FollowHyperlink "https://github.com/pyscripter/XLRisk/wiki"
 End Sub
 
 'Callback for BtnAddOutput onAction
 Sub RibbonAddOutput(control As IRibbonControl)
-  AddOutput
+    AddOutput
 End Sub
 
 'Callback for ComboIterations getText
