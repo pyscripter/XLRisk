@@ -44,7 +44,7 @@ Public Sub ProduceResults()
     ' Produce histograms only if Excel version > 16
     If Val(Application.Version) >= 16 Then ProduceHistograms
     ' Produce Tornado Diagram
-    ProduceTornadoDiagram
+    If mRiskInputs.Count > 1 Then ProduceTornadoDiagram
 End Sub
 
 Private Sub InitialiseResults()
@@ -152,15 +152,17 @@ Private Sub InitialiseResults()
         End With
     End If
     
-    '  Setup Tornado Diagram
-    Set Curr = Curr.Offset(0, ChartWidth + 1)
-    Curr.Offset(-1, 0) = "Risk Tornado Diagram"
-    mOutSheet.Names.Add Name:="Tornado", RefersTo:=Curr.Offset(1, 0)
-    With Curr.Offset(-1, 0).Resize(1, ChartWidth)
-        .Merge
-        .Font.Bold = True
-        .HorizontalAlignment = xlCenter
-    End With
+    If mRiskInputs.Count > 1 Then
+        '  Setup Tornado Diagram
+        Set Curr = Curr.Offset(0, ChartWidth + 1)
+        Curr.Offset(-1, 0) = "Risk Tornado Diagram"
+        mOutSheet.Names.Add Name:="Tornado", RefersTo:=Curr.Offset(1, 0)
+        With Curr.Offset(-1, 0).Resize(1, ChartWidth)
+            .Merge
+            .Font.Bold = True
+            .HorizontalAlignment = xlCenter
+        End With
+    End If
     
     ' Add Hyperlinks
     Set Curr = mOutSheet.Range("A1")
@@ -185,8 +187,10 @@ Private Sub InitialiseResults()
         If Val(Application.Version) >= 16 Then
             .Add Anchor:=Curr.Offset(7), Address:=vbNullString, _
                 SubAddress:=mOutSheet.Range("OutDist").Offset(-2).Address, TextToDisplay:="Output Distributions"
-        .Add Anchor:=Curr.Offset(IIf(Val(Application.Version) >= 16, 8, 7)), Address:=vbNullString, _
-            SubAddress:=mOutSheet.Range("Tornado").Offset(-2).Address, TextToDisplay:="Risk Tornado Diagram"
+        End If
+        If mRiskInputs.Count > 1 Then
+            .Add Anchor:=Curr.Offset(IIf(Val(Application.Version) >= 16, 8, 7)), Address:=vbNullString, _
+                SubAddress:=mOutSheet.Range("Tornado").Offset(-2).Address, TextToDisplay:="Risk Tornado Diagram"
         End If
     End With
     mOutSheet.Columns(1).AutoFit
