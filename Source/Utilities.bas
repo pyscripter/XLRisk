@@ -17,7 +17,7 @@ Sub CollectRiskInputs(Coll As Collection)
     FunctionList = RiskFunctionList()
         
     For Each Sht In ActiveWorkBook.Worksheets 'loop through the sheets in the workbook
-        On Error GoTo Quit 'in case there are no formulas
+        On Error GoTo NextSheet 'in case there are no formulas
         'Limit the search to the UsedRange and use SpecialCells to reduce looping further
         Set Formulas = Sht.UsedRange.SpecialCells(xlCellTypeFormulas)
         For Each Cell In Formulas 'loop through the SpecialCells only
@@ -36,8 +36,8 @@ Sub CollectRiskInputs(Coll As Collection)
             End If
         Next Cell
         Set Formulas = Nothing
+NextSheet:
     Next Sht
-Quit:
 End Sub
 
 Public Function OneRiskFunctionPerCell(Coll As Collection) As Boolean
@@ -130,7 +130,7 @@ Sub ThickBorders(R As Range)
 End Sub
 
 Function QuoteIfNeeded(S As String) As String
-    If InStr(S, " ") > 0 Then
+    If S Like "*[!0-9a-zA-Z]*" Then
         QuoteIfNeeded = "'" & S & "'"
     Else
         QuoteIfNeeded = S
@@ -147,7 +147,8 @@ Function NameOrAddress(R As Range) As String
     If Len(NameOrAddress) = 0 Then NameOrAddress = AddressWithSheet(R)
 End Function
 
-Public Function SortedTable(Table As Range, Col As Long, Optional Ascending As Boolean = True) As Variant
+Public Function SortedTable(Table As Range, Col As Long, Optional Ascending As Boolean = True, _
+    Optional Absolute As Boolean = False) As Variant
     Dim ColVals() As Double
     Dim NRows As Long
     Dim NCols As Long
@@ -155,6 +156,7 @@ Public Function SortedTable(Table As Range, Col As Long, Optional Ascending As B
     Dim I As Long
     Dim J As Long
     Dim Ranks As Variant
+    Dim CellVal As Variant
     
     NRows = Table.Rows.Count
     NCols = Table.Columns.Count
@@ -167,19 +169,26 @@ Public Function SortedTable(Table As Range, Col As Long, Optional Ascending As B
     
     ReDim ColVals(1 To NRows)
     For I = 1 To NRows
-        ColVals(I) = Table.Cells(I, Col).Value
+        If Absolute Then
+            ColVals(I) = Abs(Table.Cells(I, Col).Value)
+        Else
+            ColVals(I) = Table.Cells(I, Col).Value
+        End If
     Next I
     
-    V = Table.Value
+    ReDim V(1 To NRows, 1 To NCols)
     Ranks = ArrayRank(ColVals)
     For J = 1 To NCols
         For I = 1 To NRows
+            CellVal = Table.Cells(I, J).Value
+            '  Keep empty cells empty
             If Ascending Then
-                V(Ranks(I), J) = Table.Cells(I, J).Value
+                V(Ranks(I), J) = IIf(IsEmpty(CellVal), "", CellVal)
             Else
-                V(NRows + 1 - Ranks(I)) = Table.Cells(I, J).Value
+                V(NRows + 1 - Ranks(I)) = IIf(IsEmpty(CellVal), "", CellVal)
             End If
         Next I
     Next J
     SortedTable = V
 End Function
+

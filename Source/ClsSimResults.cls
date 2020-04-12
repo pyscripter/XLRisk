@@ -14,6 +14,7 @@ Private mRiskInputs As Collection
 Private mRiskOutputs As Collection
 Private mIterations As Long
 Private mSimResults() As Variant
+Private mDependencyMatrix() As Boolean
 
 Private Const ChartHeight As Integer = 22 'rows
 Private Const ChartWidth As Integer = 10 'columns
@@ -61,7 +62,11 @@ Private Sub InitialiseResults()
     Set Curr = mOutSheet.Range("C2")
     mOutSheet.Names.Add Name:="InputResults", RefersTo:=Curr.Offset(2)
     For Each RiskInput In mRiskInputs
-        Curr = NameOrAddress(RiskInput.Cell)
+        Curr.Value = NameOrAddress(RiskInput.Cell)
+        If Curr.PrefixCharacter = "'" Then Curr.Value = "''" & Curr.Value
+        Curr.Columns.AutoFit
+        Curr.ColumnWidth = WorksheetFunction.Max(Curr.ColumnWidth, 10)
+        Curr.HorizontalAlignment = xlCenter
         Curr.Offset(1, 0) = Right(RiskInput.Cell.Formula, Len(RiskInput.Cell.Formula) - 1)
         Set Curr = Curr.Offset(0, 1)
     Next RiskInput
@@ -94,8 +99,7 @@ Private Sub InitialiseResults()
         .HorizontalAlignment = xlCenter
     End With
     '   AutoFit
-    mOutSheet.Range("C2").Resize(1, mRiskInputs.Count).Columns.AutoFit
-    With mOutSheet.Range("C2").Offset(0, mRiskInputs.Count).Resize(2, mRiskOutputs.Count)
+    With mOutSheet.Range("OutputResults").Offset(-2).Resize(2, mRiskOutputs.Count)
         .Columns.AutoFit
         .HorizontalAlignment = xlCenter
     End With
@@ -301,18 +305,21 @@ End Sub
 
 Sub ProduceCorrelations(Cell As Range)
     Dim FirstInput As Range
+    Dim InputNames As Range
     Dim OutAddress As String
     Dim I As Long
+    Dim J As Long
     
     Cell.Font.Bold = True
     mOutSheet.Names.Add Name:="Correlations", RefersTo:=Cell
     
-    Cell.Offset(3).Resize(mRiskInputs.Count, 1).Value = WorksheetFunction.Transpose( _
-        mOutSheet.Range("InputResults").Offset(-2).Resize(1, mRiskInputs.Count).Value)
-        
+    Set InputNames = Range("InputResults").Offset(-2)
     Set FirstInput = mOutSheet.Range("InputResults").Resize(mIterations, 1)
     OutAddress = mOutSheet.Range("OutputResults").Resize(mIterations, 1).Address(True, False)
     For I = 1 To mRiskInputs.Count
+        Cell.Offset(2 + I).Value = InputNames.Offset(0, I - 1).Value
+        If Cell.Offset(2 + I).PrefixCharacter = "'" Then Cell.Offset(2 + I).Value = "''" & Cell.Offset(2 + I).Value
+
         Cell.Offset(2 + I, 1).Formula = _
         "=CORREL(" & FirstInput.Offset(0, I - 1).Address & "," & OutAddress & ")"
     Next I
@@ -321,6 +328,14 @@ Sub ProduceCorrelations(Cell As Range)
         Cell.Offset(3, 2).Resize(mRiskInputs.Count, mRiskOutputs.Count - 1)
     ThickBorders Cell.Offset(3).Resize(mRiskInputs.Count, 1)
     ThickBorders Cell.Offset(3, 1).Resize(mRiskInputs.Count, mRiskOutputs.Count)
+    
+    CalculateDependencyMatrix
+    For I = 1 To mRiskInputs.Count
+        For J = 1 To mRiskOutputs.Count
+            If Not mDependencyMatrix(I, J) Then Cell.Offset(2 + I, J).ClearContents
+        Next J
+    Next I
+    
     mOutSheet.Range("SimStats").Offset(-3).Resize(3, 1 + mRiskOutputs.Count).Copy Cell
     Cell = "Correlations"
     Cell.Offset(2) = "Risk Inputs"
@@ -429,7 +444,7 @@ Sub ProduceTornadoDiagram()
         Cell.Offset(0, 1).Address & "&"")""" ' Chart Title
     SortedTable.Offset(2).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).FormulaArray = _
         "=SortedTable(" & mOutSheet.Range("Correlations").Offset(3).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).Address _
-        & "," & Cell.Offset(2).Address & "+1)" 'Sorted Table
+        & "," & Cell.Offset(2).Address & "+1,1,1)" 'Sorted Table
     SortedTable.Offset(-1).Formula = "=""Correlations - Column ""&" & Cell.Offset(2).Address & "&"" sorted""" ' Table title
     
     Cell.Offset(2).NumberFormat = ";;;" 'Hide
@@ -439,8 +454,21 @@ Sub ProduceTornadoDiagram()
     Set R = Cell.Offset(3).Resize(ChartHeight, ChartWidth)
     Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
     
-    mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET('" & mOutSheet.Name & "'!" & _
+    '!!!!
+    mOutSheet.Names.Add Name:="TornadoX", RefersTo:="=INDIRECT(""'" & mOutSheet.Name & "'!""&" & _
+        "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
+        "OFFSET('" & mOutSheet.Name & "'!" & _
         SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
+        mOutSheet.Name & "'!" & Cell.Offset(2).Address & "))" & _
+        "," & SortedTable.Column & ")&"":" & _
+        SortedTable.Offset(mRiskInputs.Count + 1).Address & """)"
+    mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET(INDIRECT(""'" & mOutSheet.Name & "'!""&" & _
+        "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
+        "OFFSET('" & mOutSheet.Name & "'!" & _
+        SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
+        mOutSheet.Name & "'!" & Cell.Offset(2).Address & "))" & _
+        "," & SortedTable.Column & ")&"":" & _
+        SortedTable.Offset(mRiskInputs.Count + 1).Address & """),0,'" & _
         mOutSheet.Name & "'!" & Cell.Offset(2).Address & ")"
     
     With NewChart
@@ -449,7 +477,7 @@ Sub ProduceTornadoDiagram()
         .PlotVisibleOnly = False
         Set Source = .SeriesCollection.NewSeries
         Source.Values = "='" & mOutSheet.Name & "'!TornadoY"
-        Source.XValues = SortedTable.Offset(2).Resize(mRiskInputs.Count, 1)
+        Source.XValues = "='" & mOutSheet.Name & "'!TornadoX"
         .Axes(xlValue).MaximumScale = 1
         .Axes(xlValue).MinimumScale = -1
         .Axes(xlCategory).TickLabelPosition = xlLow
@@ -461,5 +489,63 @@ Sub ProduceTornadoDiagram()
         .ChartTitle.Caption = "='" & mOutSheet.Name & "'!" & Cell.Offset(3).Address
         .ChartTitle.Font.Size = 14
         .ChartTitle.Font.Bold = False
+        .ChartGroups(1).GapWidth = 50
     End With
+End Sub
+
+Sub CalculateDependencyMatrix()
+    Dim AppCalculation As XlCalculation
+    Dim SavedOutputs() As Variant
+    Dim SavedInputs() As String
+    Dim OldProduceRandomSample As Boolean
+    Dim I As Long
+    Dim J As Long
+    
+    ReDim mDependencyMatrix(1 To mRiskInputs.Count, 1 To mRiskOutputs.Count)
+    ReDim SavedInputs(1 To mRiskInputs.Count)
+    ReDim SavedOutputs(1 To mRiskOutputs.Count)
+    
+    ' Save ProduceRandomSample
+    OldProduceRandomSample = ProduceRandomSample
+    ProduceRandomSample = False
+    ' Save Calculation Mode
+    AppCalculation = Application.Calculation
+    Application.Calculation = xlCalculationManual
+    On Error GoTo Restore
+    
+    ' Save values
+    Application.CalculateFull
+    For I = 1 To mRiskInputs.Count
+        SavedInputs(I) = mRiskInputs(I).Cell.Formula
+    Next I
+    For J = 1 To mRiskOutputs.Count
+        SavedOutputs(J) = mRiskOutputs(J).Cell.Value
+    Next J
+    For I = 1 To mRiskInputs.Count
+        mRiskInputs(I).Cell.Value = -1000 ' Start with a negative value
+        Application.Calculate
+        For J = 1 To mRiskOutputs.Count
+            If mRiskOutputs(J).Cell.Value <> SavedOutputs(J) Then mDependencyMatrix(I, J) = True
+        Next J
+        mRiskInputs(I).Cell.Value = 1000 ' Now try a positive value
+        Application.Calculate
+        For J = 1 To mRiskOutputs.Count
+            If Not mDependencyMatrix(I, J) Then
+                If mRiskOutputs(J).Cell.Value <> SavedOutputs(J) Then mDependencyMatrix(I, J) = True
+            End If
+        Next J
+        
+        mRiskInputs(I).Cell.Formula = SavedInputs(I)
+    Next I
+Restore:
+    On Error GoTo 0
+    ' Save again just in case
+    For I = 1 To mRiskInputs.Count
+        mRiskInputs(I).Cell.Formula = SavedInputs(I)
+    Next I
+    'Restore ProduceRandomSample
+    ProduceRandomSample = OldProduceRandomSample
+    'Restore Calculation Mode
+    Application.Calculation = AppCalculation
+    Application.CalculateFull
 End Sub

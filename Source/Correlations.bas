@@ -160,6 +160,8 @@ Attribute RiskCorrectCorrmat.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Public Function RiskSCorrel(Array1 As Variant, Array2 As Variant) As Variant
+Attribute RiskSCorrel.VB_Description = "Returns the Spearman's rank correlation of two arrays"
+Attribute RiskSCorrel.VB_ProcData.VB_Invoke_Func = " \n20"
     Dim Ranks1() As Double
     Dim Ranks2() As Double
     Dim N As Long

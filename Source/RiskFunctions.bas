@@ -42,6 +42,8 @@ Attribute RiskBinomial.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Public Function RiskBernoulli(P As Double, Optional Corrmat As Long = 0) As Long
+Attribute RiskBernoulli.VB_Description = "Generate random sample from a Bernoulli destribution"
+Attribute RiskBernoulli.VB_ProcData.VB_Invoke_Func = " \n20"
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
@@ -54,6 +56,8 @@ Public Function RiskBernoulli(P As Double, Optional Corrmat As Long = 0) As Long
 End Function
 
 Public Function RiskExpon(Mean As Double, Optional Corrmat As Long = 0) As Double
+Attribute RiskExpon.VB_Description = "Generate random sample from an exponential destribution"
+Attribute RiskExpon.VB_ProcData.VB_Invoke_Func = " \n20"
     Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
     
@@ -76,6 +80,8 @@ Public Function RiskExpon(Mean As Double, Optional Corrmat As Long = 0) As Doubl
 End Function
 
 Function RiskErlang(kappa As Long, lambda As Double, Optional Corrmat As Long = 0) As Double
+Attribute RiskErlang.VB_Description = "Generate random sample from an Erlang destribution"
+Attribute RiskErlang.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Random Sample from an Erlang distribution (same as Gamma with an integer alpha)
 
     Application.Volatile (ProduceRandomSample)
@@ -90,6 +96,8 @@ Function RiskErlang(kappa As Long, lambda As Double, Optional Corrmat As Long = 
 End Function
 
 Function RiskGamma(alpha As Double, beta As Double, Optional Corrmat As Long = 0) As Double
+Attribute RiskGamma.VB_Description = "Generate random sample from a Gamma destribution"
+Attribute RiskGamma.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Random sample from a Gamma distribution
     
     Dim RndValue As Double
@@ -140,6 +148,8 @@ Attribute RiskUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Public Function RiskDiscrete(Values As Variant, Probabilities As Variant, Optional Corrmat As Long = 0) As Double
+Attribute RiskDiscrete.VB_Description = "Generate random sample from a discrete probability destribution"
+Attribute RiskDiscrete.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Generates samples for a discrete distribution specified by the array Values of accending values and the respective
 '   probabilities
     
@@ -190,6 +200,8 @@ Public Function RiskDiscrete(Values As Variant, Probabilities As Variant, Option
 End Function
 
 Public Function RiskDUniform(Values As Variant, Optional Corrmat As Long = 0) As Variant
+Attribute RiskDUniform.VB_Description = "Generate random sample from a uniform discrete destribution"
+Attribute RiskDUniform.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Random sample from a Discrete Uniform distribution
 '   Values can be a range or an array of values
     
@@ -421,6 +433,8 @@ Attribute RiskCumul.VB_ProcData.VB_Invoke_Func = " \n20"
 End Function
 
 Function RiskWeibull(alpha As Double, beta As Double, Optional Corrmat As Long = 0) As Double
+Attribute RiskWeibull.VB_Description = "Generate random sample from a Weibull destribution"
+Attribute RiskWeibull.VB_ProcData.VB_Invoke_Func = " \n20"
 '   Random Sample from a Weibull distribution (same as Gamma with an integer alpha)
     Dim RndValue As Double
     Application.Volatile (ProduceRandomSample)
