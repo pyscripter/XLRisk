@@ -17,7 +17,7 @@ Sub CollectRiskInputs(Coll As Collection)
     FunctionList = RiskFunctionList()
         
     For Each Sht In ActiveWorkBook.Worksheets 'loop through the sheets in the workbook
-        On Error GoTo NextSheet 'in case there are no formulas
+        On Error GoTo Error 'in case there are no formulas
         'Limit the search to the UsedRange and use SpecialCells to reduce looping further
         Set Formulas = Sht.UsedRange.SpecialCells(xlCellTypeFormulas)
         For Each Cell In Formulas 'loop through the SpecialCells only
@@ -38,6 +38,9 @@ Sub CollectRiskInputs(Coll As Collection)
         Set Formulas = Nothing
 NextSheet:
     Next Sht
+    Exit Sub
+Error:
+    Resume NextSheet
 End Sub
 
 Public Function OneRiskFunctionPerCell(Coll As Collection) As Boolean

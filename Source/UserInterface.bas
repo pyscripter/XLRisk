@@ -57,6 +57,7 @@ Public Function SetUpXLRisk() As Worksheet
         CurrentWS.Activate
         Application.ScreenUpdating = True
     End If
+    On Error GoTo 0
     ShowRiskInputs WS
     Set SetUpXLRisk = WS
 End Function

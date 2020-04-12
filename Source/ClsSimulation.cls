@@ -170,7 +170,7 @@ Public Sub Run()
         If UserStopped Then
             UserStopped = False
             MsgBox "The simulation was interrupted"
-            Exit For
+            GoTo RestoreExcel
         End If
         Application.StatusBar = "Iteration: " & CStr(Iter) & "/" & CStr(mIterations)
     Next Iter
