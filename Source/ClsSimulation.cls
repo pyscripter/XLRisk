@@ -15,6 +15,9 @@ Private mSeed As Double
 Private mIterations As Long
 Private mScreenUpdate As Boolean
 Private mLatinHypercube As Boolean
+Private mCalculateDataTables As Boolean
+Private mMacroBefore As String
+Private mMacroAfter As String
 Private mSimError As Boolean
 Private mSimErrorMsg As String
 ' The following two-dimensional array will contain the values of Iter, Risk Input Samples, Risk Output results
@@ -43,6 +46,9 @@ Private Sub Class_Initialize()
     mIterations = XLRisk.Range("Iterations").Value
     mScreenUpdate = XLRisk.Range("ScreenUpdate").Value
     mLatinHypercube = XLRisk.Range("LatinHypercube").Value
+    mCalculateDataTables = XLRisk.Range("CalcDataTables").Value
+    mMacroBefore = XLRisk.Range("MacroBefore").Value
+    mMacroAfter = XLRisk.Range("MacroAfter").Value
     mCurrentIteration = 0
     mProcessingCorrmatInfo = False
 End Sub
@@ -53,9 +59,20 @@ Private Sub SimIteration(Iter As Integer)
     Dim I As Integer
       
     On Error GoTo SSError
+    
+    'Run Macro Before
+    If mMacroBefore <> vbNullString Then Application.Run "'" & mWB.Name & "'!" & mMacroBefore
         
     'Recalculate
-    Application.Calculate
+    If mCalculateDataTables Then
+        Application.Calculate
+    Else
+        Application.Calculation = xlCalculationSemiautomatic
+        Application.Calculation = xlCalculationManual
+    End If
+    
+    'Run Macro After
+    If mMacroAfter <> vbNullString Then Application.Run "'" & mWB.Name & "'!" & mMacroAfter
       
     ' Inputs
     mSimResults(Iter, 1) = Iter

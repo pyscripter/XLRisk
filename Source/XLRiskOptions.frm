@@ -1,10 +1,10 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} XLRiskOptions 
    Caption         =   "XLRisk Options"
-   ClientHeight    =   3945
+   ClientHeight    =   5085
    ClientLeft      =   105
    ClientTop       =   435
-   ClientWidth     =   4890
+   ClientWidth     =   5490
    OleObjectBlob   =   "XLRiskOptions.frx":0000
    StartUpPosition =   1  'CenterOwner
 End
@@ -26,6 +26,9 @@ Private Sub btnOK_Click()
     XLRisk.Range("Iterations") = CInt(cbIterations.text)
     XLRisk.Range("ScreenUpdate") = cbScreenUpdate.Value
     XLRisk.Range("LatinHypercube") = cbLatinHypercube.Value
+    XLRisk.Range("CalcDataTables") = cbCalcDataTables.Value
+    XLRisk.Range("MacroBefore") = tbMacroBefore.Value
+    XLRisk.Range("MacroAfter") = tbMacroAfter.Value
     If ProduceRandomSample <> cbRandomSamples.Value Then
         ProduceRandomSample = cbRandomSamples.Value
         Application.CalculateFull
@@ -36,6 +39,10 @@ End Sub
 
 Private Sub btnHelp_Click()
     ActiveWorkBook.FollowHyperlink "https://github.com/pyscripter/XLRisk/wiki/OptionsDialog"
+End Sub
+
+Private Sub Frame1_Click()
+
 End Sub
 
 Private Sub UserForm_Initialize()
@@ -49,4 +56,7 @@ Private Sub UserForm_Initialize()
     cbScreenUpdate.Value = CBool(XLRisk.Range("ScreenUpdate"))
     cbRandomSamples.Value = ProduceRandomSample
     cbLatinHypercube.Value = CBool(XLRisk.Range("LatinHypercube"))
+    cbCalcDataTables = CBool(XLRisk.Range("CalcDataTables"))
+    tbMacroBefore = CStr(XLRisk.Range("MacroBefore"))
+    tbMacroAfter = CStr(XLRisk.Range("MacroAfter"))
 End Sub

@@ -10,11 +10,10 @@ Public Function SetUpXLRisk() As Worksheet
     Dim WS As Worksheet
     Dim CurrentWS As Worksheet
      
-    On Error Resume Next
     Set WB = ActiveWorkBook
     Set CurrentWS = WB.ActiveSheet
-    Err.Clear
         
+    On Error Resume Next
     Set WS = WB.Worksheets("XLRisk")
     If Err <> 0 Then
         Application.ScreenUpdating = False
@@ -37,9 +36,19 @@ Public Function SetUpXLRisk() As Worksheet
             .Cells(5, 1) = "Latin Hypercube"
             .Cells(5, 2) = True
             .Names.Add Name:="LatinHypercube", RefersTo:=.Cells(5, 2)
+            .Cells(6, 1) = "Calculate data dables during simulation"
+            .Cells(6, 2) = True
+            .Names.Add Name:="CalcDataTables", RefersTo:=.Cells(6, 2)
         
-            .Range("A1").Columns.AutoFit
-            .Range("A2.A4").Font.Italic = True
+            .Cells(10, 1) = "Macro to run before each iteration"
+            .Cells(10, 2) = ""
+            .Names.Add Name:="MacroBefore", RefersTo:=.Cells(10, 2)
+            .Cells(11, 1) = "Macro to run after each iteration"
+            .Cells(11, 2) = ""
+            .Names.Add Name:="MacroAfter", RefersTo:=.Cells(11, 2)
+                        
+            .Columns(1).AutoFit
+            .Range("A2.A12").Font.Italic = True
     
             .Cells(1, 4) = "Simulation Inputs"
             .Cells(3, 4) = "Range"
