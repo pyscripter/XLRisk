@@ -54,3 +54,19 @@ Private Sub CheckAndFixLinks(oBook As Workbook)
     Next
     On Error GoTo 0
 End Sub
+
+Private Sub App_WorkbookBeforeSave(ByVal oBk As Workbook, ByVal SaveAsUI As Boolean, Cancel As Boolean)
+'   If the only external link source is ourselves do not prompt for updating of links.
+'   The links will be fixed by CheckAndFixLinks when the workbook is opened again.
+    Dim vLink As Variant
+    Dim vLinks As Variant
+    
+    If oBk Is Nothing Then Exit Sub
+    If oBk Is ThisWorkbook Then Exit Sub
+    If oBk.IsInplace Then Exit Sub
+    
+    vLinks = oBk.LinkSources(xlExcelLinks)
+    'Check if we have any links, if not, exit
+    If IsEmpty(vLinks) Then Exit Sub
+    If WorksheetFunction.Count(vLinks) = 1 And vLink Like "*" & ThisWorkbook.Name Then oBk.UpdateLinks = xlUpdateLinksNever
+End Sub
