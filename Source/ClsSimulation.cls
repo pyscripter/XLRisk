@@ -61,7 +61,7 @@ Private Sub SimIteration(Iter As Integer)
     mSimResults(Iter, 1) = Iter
     I = 2
     For Each RiskInput In mRiskInputs
-        mSimResults(Iter, I) = RiskInput.Cell.Value
+        mSimResults(Iter, I) = RiskInput.Cell.Value2
         I = I + 1
     Next RiskInput
     
