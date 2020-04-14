@@ -94,7 +94,7 @@ Public Function InputCells() As Variant
     InputCells = Result
 End Function
 
-Sub CollectRiskOutputs(Coll As Collection)
+Public Sub CollectRiskOutputs(Coll As Collection)
 '  Adds all risk outputs of the ActiveWorkbook to Coll
 '  The collection contains pairs (name, output cells)
 '  Assumes XLRisk sheet exists
@@ -118,8 +118,7 @@ Sub CollectRiskOutputs(Coll As Collection)
     Next Row
 End Sub
 
-
-Sub ThickBorders(R As Range)
+Public Sub ThickBorders(R As Range)
     With R
         R.Borders(xlEdgeTop).LineStyle = xlContinuous
         R.Borders(xlEdgeTop).Weight = xlMedium
@@ -132,7 +131,7 @@ Sub ThickBorders(R As Range)
     End With
 End Sub
 
-Function QuoteIfNeeded(S As String) As String
+Public Function QuoteIfNeeded(S As String) As String
     If S Like "*[!0-9a-zA-Z]*" Then
         QuoteIfNeeded = "'" & S & "'"
     Else
@@ -140,11 +139,11 @@ Function QuoteIfNeeded(S As String) As String
     End If
 End Function
 
-Function AddressWithSheet(R As Range) As String
+Public Function AddressWithSheet(R As Range) As String
     AddressWithSheet = QuoteIfNeeded(R.Parent.Name) & "!" & R.Address
 End Function
 
-Function NameOrAddress(R As Range) As String
+Public Function NameOrAddress(R As Range) As String
     On Error Resume Next
     NameOrAddress = R.Name.Name
     If Len(NameOrAddress) = 0 Then NameOrAddress = AddressWithSheet(R)

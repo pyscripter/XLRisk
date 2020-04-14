@@ -383,7 +383,7 @@ Private Sub ProduceHistograms()
     Dim NewChart As Chart
     Dim RiskOutput As ClsRiskOutput
     
-    On Error Resume Next
+    On Error GoTo Finish
     
     Set SimOutput = mOutSheet.Range("OutputResults").Resize(mIterations, 1)
     Set R = mOutSheet.Range("OutDist").Resize(ChartHeight, ChartWidth)
@@ -403,6 +403,7 @@ Private Sub ProduceHistograms()
         Set R = R.Offset(ChartHeight + 1)
     Next RiskOutput
     mOutSheet.Range("A1").Select
+Finish:
 End Sub
 
 Sub ProduceTornadoDiagram()

@@ -1,0 +1,56 @@
+﻿Option Explicit
+
+Private WithEvents App As Application
+
+Private Sub Workbook_Open()
+    Call FunctionDescriptions
+    Set App = Application
+End Sub
+
+Private Sub Workbook_BeforeClose(Cancel As Boolean)
+    Set App = Nothing
+End Sub
+
+Private Sub App_WorkbookOpen(ByVal oBk As Workbook)
+'-------------------------------------------------------------------------
+' Procedure : ProcessNewBookOpened
+' Company   : JKP Application Development Services (c) 2005
+' Author    : Jan Karel Pieterse
+' Created   : 2-6-2008
+' Purpose   : When a new workbook is opened, this sub will be run.
+' Called from: clsAppEvents.App_Workbook_Open and ThisWorkbook.Workbook_Open
+'-------------------------------------------------------------------------
+    'Sometimes OBk is nothing?
+    If oBk Is Nothing Then Exit Sub
+    
+    If oBk Is ThisWorkbook Then Exit Sub
+    If oBk.IsInplace Then Exit Sub
+    CheckAndFixLinks oBk
+End Sub
+
+Private Sub CheckAndFixLinks(oBook As Workbook)
+'-------------------------------------------------------------------------
+' Procedure : CheckAndFixLinks Created by Jan Karel Pieterse
+' Company   : JKP Application Development Services (c) 2008
+' Author    : Jan Karel Pieterse
+' Created   : 2-6-2008
+' Purpose   : Checks for links to addin and fixes them
+'             if they are not pointing to proper location
+'-------------------------------------------------------------------------
+    Dim vLink As Variant
+    Dim vLinks As Variant
+    'Get all links
+    vLinks = oBook.LinkSources(xlExcelLinks)
+    'Check if we have any links, if not, exit
+    If IsEmpty(vLinks) Then Exit Sub
+    For Each vLink In vLinks
+        If vLink Like "*" & ThisWorkbook.Name Then
+            'We've found a link to our add-in, redirect it to
+            'its current location. Avoid prompts
+            Application.DisplayAlerts = False
+            oBook.ChangeLink vLink, ThisWorkbook.FullName, xlLinkTypeExcelLinks
+            Application.DisplayAlerts = True
+        End If
+    Next
+    On Error GoTo 0
+End Sub

@@ -55,7 +55,6 @@ Sub RibbonIterationsText(control As IRibbonControl, ByRef returnedVal)
     Dim XLRisk As Worksheet
      
     On Error Resume Next
-    Err.Clear
     Set XLRisk = ActiveWorkBook.Worksheets("XLRisk")
     If Err = 0 Then
         returnedVal = CStr(XLRisk.Range("Iterations"))
@@ -81,25 +80,24 @@ End Sub
 ' This is an auxialiary routine to force the update of the enabled state of the buttons
 Sub DelayedSimulate()
     Dim Simulation As ClsSimulation
-    On Error Resume Next
+    
+    On Error GoTo CleanUp
     Set Simulation = New ClsSimulation
     'Set the Global Simulation object
     Set gSimulation = Simulation
     Simulation.Run
+CleanUp:
     Running = False
-    XLRiskRibbonUI.Invalidate
+    If Not XLRiskRibbonUI Is Nothing Then XLRiskRibbonUI.Invalidate
     Set gSimulation = Nothing
 End Sub
 
 'Callback for BtnRun onAction
 Sub RibbonSimulate(control As IRibbonControl)
-    On Error Resume Next
     Running = True
-    XLRiskRibbonUI.Invalidate
-    'Simulate
+    If Not XLRiskRibbonUI Is Nothing Then XLRiskRibbonUI.Invalidate
+    'Simulate after a delay to give Excel time to update the Ribbon
     Application.OnTime Now + TimeSerial(0, 0, 1), "DelayedSimulate"
-    'Running = False
-    'XLRiskRibbonUI.Invalidate
 End Sub
 
 'Callback for BtnStop onAction

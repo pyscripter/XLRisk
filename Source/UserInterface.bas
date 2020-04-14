@@ -78,11 +78,10 @@ Public Function CreateOutputSheet() As Worksheet
         Set WS = WB.Worksheets("Risk Results " + CStr(I))
         If Err <> 0 Then
             Err.Clear
-            'Application.ScreenUpdating = False
+            On Error GoTo 0
             Set WS = WB.Sheets.Add(, WB.Worksheets(WB.Worksheets.Count))
             WS.Name = "Risk Results " + CStr(I)
             Set CreateOutputSheet = WS
-            'Application.ScreenUpdating = True
             CurrentWS.Activate
             Exit Do
         End If
