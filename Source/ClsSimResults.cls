@@ -523,16 +523,28 @@ Sub CalculateDependencyMatrix()
         SavedOutputs(J) = mRiskOutputs(J).Cell.Value
     Next J
     For I = 1 To mRiskInputs.Count
-        mRiskInputs(I).Cell.Value = -1000 ' Start with a negative value
+        mRiskInputs(I).Cell.Value = -100 ' Start with a negative value
         Application.Calculate
         For J = 1 To mRiskOutputs.Count
-            If mRiskOutputs(J).Cell.Value <> SavedOutputs(J) Then mDependencyMatrix(I, J) = True
+            If IsError(SavedOutputs(J)) Then
+                mDependencyMatrix(I, J) = False
+            ElseIf IsError(mRiskOutputs(J).Cell.Value) Then
+                mDependencyMatrix(I, J) = True
+            Else
+                mDependencyMatrix(I, J) = mRiskOutputs(J).Cell.Value <> SavedOutputs(J)
+            End If
         Next J
-        mRiskInputs(I).Cell.Value = 1000 ' Now try a positive value
+        mRiskInputs(I).Cell.Value = 100 ' Now try a positive value
         Application.Calculate
         For J = 1 To mRiskOutputs.Count
             If Not mDependencyMatrix(I, J) Then
-                If mRiskOutputs(J).Cell.Value <> SavedOutputs(J) Then mDependencyMatrix(I, J) = True
+                If IsError(SavedOutputs(J)) Then
+                    mDependencyMatrix(I, J) = False
+                ElseIf IsError(mRiskOutputs(J).Cell.Value) Then
+                    mDependencyMatrix(I, J) = True
+                Else
+                    mDependencyMatrix(I, J) = mRiskOutputs(J).Cell.Value <> SavedOutputs(J)
+                End If
             End If
         Next J
         
