@@ -37,6 +37,8 @@ Public Sub Init(Iterations As Long, LatinHyperCube As Boolean)
 End Sub
 
 Function AddRiskInput(RiskInput As ClsRiskInput) As Long
+    ' If the workbook contains data tables in may be called many times with the same RiskInput
+    On Error Resume Next
     mRiskInputs.Add RiskInput, AddressWithSheet(RiskInput.Cell)
     AddRiskInput = mRiskInputs.Count
 End Function
