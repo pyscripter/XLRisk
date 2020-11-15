@@ -24,6 +24,9 @@ Excel 2010 or later required.  Excel 16 or newer is recommended.
 * [Simulation Results](https://github.com/pyscripter/XLRisk/wiki/SimResults)
 * [Correlated Inputs Example](https://github.com/pyscripter/XLRisk/wiki/CorrelatedInputsExample)
 
+## Tutorials
+* [Article on Risk Analysis using XLRisk](https://medium.com/analytics-vidhya/building-a-probabilistic-risk-estimate-using-monte-carlo-simulations-cf904b1ab503) by Zhijing Eu
+* [Video tutorial](https://www.youtube.com/watch?v=0RiEquwDjNg)
 
 **Credits:**  
 I would like to thank the [ESMT](https://www.esmt.org/) students for providing an incentive for building this addin and helping to improve it.
