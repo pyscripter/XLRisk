@@ -41,10 +41,6 @@ Private Sub btnHelp_Click()
     ActiveWorkBook.FollowHyperlink "https://github.com/pyscripter/XLRisk/wiki/OptionsDialog"
 End Sub
 
-Private Sub Frame1_Click()
-
-End Sub
-
 Private Sub UserForm_Initialize()
     Dim XLRisk As Worksheet
     Set XLRisk = SetUpXLRisk

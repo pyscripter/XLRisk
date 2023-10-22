@@ -346,20 +346,19 @@ Private Sub ProduceCumulativeDistributions()
     Dim R As Range
     Dim Percentiles As Range
     Dim NewChart As Chart
-    Dim Source As Series
     
+    On Error GoTo Finish
+      
     Set Percentiles = mOutSheet.Range("Percentiles")
     Set R = mOutSheet.Range("OutCumDist").Resize(ChartHeight, ChartWidth)
-    
+        
+    Percentiles.Columns(1).Select
     For I = 1 To mRiskOutputs.Count
-        Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
+        Set NewChart = mOutSheet.Shapes.AddChart2(-1, xlXYScatterLines, R.Left, R.Top, R.Width, R.Height).Chart
         
         With NewChart
-            .ChartType = xlXYScatterLines
             .HasLegend = False
-            Set Source = .SeriesCollection.NewSeries
-            Source.Values = Percentiles.Columns(1)
-            Source.XValues = Percentiles.Columns(I + 1)
+            .SeriesCollection(1).XValues = Percentiles.Columns(I + 1)
             .Axes(xlValue).MaximumScale = 1
             If Percentiles.Cells(1, I + 1) > 0 Then
                 .Axes(xlCategory).MinimumScale = WorksheetFunction.RoundDown(Percentiles.Cells(1, I + 1), 0)
@@ -374,6 +373,7 @@ Private Sub ProduceCumulativeDistributions()
         Set R = R.Offset(ChartHeight + 1)
     Next I
     mOutSheet.Range("A1").Select
+Finish:
 End Sub
 
 Private Sub ProduceHistograms()
@@ -413,17 +413,17 @@ Sub ProduceTornadoDiagram()
     Dim NewChart As Chart
     Dim Source As Series
     Dim I As Integer
-    
+
     Set Cell = mOutSheet.Range("Tornado")
     Cell.Value = "Select Output:"
     Cell.Offset(1).Value = "Name:"
-    
+
     Set SortedTable = Cell.Offset(0, ChartWidth + 1)
-    
+
     mOutSheet.Range("Correlations").Resize(mRiskInputs.Count + 3, mRiskOutputs.Count + 1).Copy SortedTable.Offset(-1)
     SortedTable.Resize(mRiskInputs.Count + 1, mRiskOutputs.Count + 1).Columns.AutoFit
     SortedTable.Resize(mRiskInputs.Count + 1, mRiskOutputs.Count + 1).Columns.Hidden = True
-        
+
     Cell.Offset(0, 1).Value = SortedTable.Offset(0, 1).Value 'First output cell address
     ThickBorders Cell.Offset(0, 1)
     With Cell.Offset(0, 1).Validation
@@ -435,7 +435,7 @@ Sub ProduceTornadoDiagram()
         .ShowInput = True
         .ShowError = True
     End With
-    
+
     'Formulas
     Cell.Offset(1, 1).Formula = "=HLOOKUP(" & Cell.Offset(0, 1).Address & "," & _
         SortedTable.Offset(0, 1).Resize(2, mRiskOutputs.Count).Address & ",2,0)" 'Risk output name
@@ -447,14 +447,10 @@ Sub ProduceTornadoDiagram()
         "=SortedTable(" & mOutSheet.Range("Correlations").Offset(3).Resize(mRiskInputs.Count, mRiskOutputs.Count + 1).Address _
         & "," & Cell.Offset(2).Address & "+1,1,1)" 'Sorted Table
     SortedTable.Offset(-1).Formula = "=""Correlations - Column ""&" & Cell.Offset(2).Address & "&"" sorted""" ' Table title
-    
+
     Cell.Offset(2).NumberFormat = ";;;" 'Hide
     Cell.Resize(2, 2).Columns.AutoFit
 
-    'Create Chart
-    Set R = Cell.Offset(3).Resize(ChartHeight, ChartWidth)
-    Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
-    
     '!!!!
     mOutSheet.Names.Add Name:="TornadoX", RefersTo:="=INDIRECT(""'" & mOutSheet.Name & "'!""&" & _
         "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
@@ -471,21 +467,27 @@ Sub ProduceTornadoDiagram()
         "," & SortedTable.Column & ")&"":" & _
         SortedTable.Offset(mRiskInputs.Count + 1).Address & """),0,'" & _
         mOutSheet.Name & "'!" & Cell.Offset(2).Address & ")"
-    
+
+    mOutSheet.Range("TornadoY").Select
+    'Create Chart
+    Set R = Cell.Offset(3).Resize(WorksheetFunction.Max(ChartHeight, mRiskInputs.Count), ChartWidth)
+    'Set NewChart = mOutSheet.ChartObjects.Add(Left:=R.Left, Top:=R.Top, Width:=R.Width, Height:=R.Height).Chart
+    Set NewChart = mOutSheet.Shapes.AddChart2(-1, xlBarClustered, R.Left, R.Top, R.Width, R.Height).Chart
+
+
     With NewChart
-        .ChartType = xlBarClustered
+        '.ChartType = xlBarClustered
         .HasLegend = False
         .PlotVisibleOnly = False
-        Set Source = .SeriesCollection.NewSeries
+        Set Source = .SeriesCollection(1)
         Source.Values = "='" & mOutSheet.Name & "'!TornadoY"
         Source.XValues = "='" & mOutSheet.Name & "'!TornadoX"
         .Axes(xlValue).MaximumScale = 1
         .Axes(xlValue).MinimumScale = -1
-        .Axes(xlCategory).TickLabelPosition = xlLow
-        '.ApplyDataLabels xlDataLabelsShowValue
-        .SetElement (msoElementDataLabelInsideEnd)
+        .Axes(xlCategory).TickLabelPosition = xlTickLabelPositionLow
+        .ApplyDataLabels xlDataLabelsShowValue
+        .SetElement (msoElementDataLabelOutSideEnd)
         Source.DataLabels.NumberFormat = "0.00"
-        Source.DataLabels.Position = xlLabelPositionInsideEnd
         .SetElement (msoElementChartTitleAboveChart)
         .ChartTitle.Caption = "='" & mOutSheet.Name & "'!" & Cell.Offset(3).Address
         .ChartTitle.Font.Size = 14
@@ -562,3 +564,4 @@ Restore:
     Application.Calculation = AppCalculation
     Application.CalculateFull
 End Sub
+
