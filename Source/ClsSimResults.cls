@@ -450,23 +450,18 @@ Sub ProduceTornadoDiagram()
 
     Cell.Offset(2).NumberFormat = ";;;" 'Hide
     Cell.Resize(2, 2).Columns.AutoFit
+    
+    Cell.Offset(4).Formula = "=CELL(""filename"", A1)"
+    Cell.Offset(5).Formula = "=""'""&" & "MID(" & Cell.Offset(4).Address & ",FIND(""]""," & Cell.Offset(4).Address & ")+1,31)" & "&""'!"""
+    Cell.Offset(6).Formula = "=" & Cell.Offset(5).Address & "&" & "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
+        "OFFSET(" & SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0," & _
+        Cell.Offset(2).Address & "))" & "," & SortedTable.Column & ")&"":" & _
+        SortedTable.Offset(mRiskInputs.Count + 1).Address & """"
 
     '!!!!
-    mOutSheet.Names.Add Name:="TornadoX", RefersTo:="=INDIRECT(""'" & mOutSheet.Name & "'!""&" & _
-        "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
-        "OFFSET('" & mOutSheet.Name & "'!" & _
-        SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
-        mOutSheet.Name & "'!" & Cell.Offset(2).Address & "))" & _
-        "," & SortedTable.Column & ")&"":" & _
-        SortedTable.Offset(mRiskInputs.Count + 1).Address & """)"
-    mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET(INDIRECT(""'" & mOutSheet.Name & "'!""&" & _
-        "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
-        "OFFSET('" & mOutSheet.Name & "'!" & _
-        SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0,'" & _
-        mOutSheet.Name & "'!" & Cell.Offset(2).Address & "))" & _
-        "," & SortedTable.Column & ")&"":" & _
-        SortedTable.Offset(mRiskInputs.Count + 1).Address & """),0,'" & _
-        mOutSheet.Name & "'!" & Cell.Offset(2).Address & ")"
+    mOutSheet.Names.Add Name:="TornadoX", RefersTo:="=INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & ")"
+    mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET(INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & "),0," & _
+        Cell.Offset(5).Value & Cell.Offset(2).Address & ")"
 
     mOutSheet.Range("TornadoY").Select
     'Create Chart
