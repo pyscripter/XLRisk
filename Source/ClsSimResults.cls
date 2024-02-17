@@ -452,17 +452,25 @@ Sub ProduceTornadoDiagram()
     Cell.Resize(2, 2).Columns.AutoFit
     
     Cell.Offset(4).Formula = "=CELL(""filename"", A1)"
-    Cell.Offset(5).Formula = "=""'""&" & "MID(" & Cell.Offset(4).Address & ",FIND(""]""," & Cell.Offset(4).Address & ")+1,31)" & "&""'!"""
+    If Cell.Offset(4).Value = "" Then 'filename not saved
+      Cell.Offset(5).Formula = "=""'" & mOutSheet.Name & "'!"""
+    Else
+      ' This is so that the chart is shown correctly when the sheet is renamed
+      Cell.Offset(5).Formula = "=""'""&" & "MID(" & Cell.Offset(4).Address & ",FIND(""]""," & Cell.Offset(4).Address & ")+1,31)" & "&""'!"""
+    End If
     Cell.Offset(6).Formula = "=" & Cell.Offset(5).Address & "&" & "ADDRESS(" & SortedTable.Row + 2 & "+" & "COUNTBLANK(" & _
         "OFFSET(" & SortedTable.Offset(2).Resize(mRiskInputs.Count, 1).Address & ",0," & _
         Cell.Offset(2).Address & "))" & "," & SortedTable.Column & ")&"":" & _
         SortedTable.Offset(mRiskInputs.Count + 1).Address & """"
 
-    '!!!!
-    mOutSheet.Names.Add Name:="TornadoX", RefersTo:="=INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & ")"
-    mOutSheet.Names.Add Name:="TornadoY", RefersTo:="=OFFSET(INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & "),0," & _
-        Cell.Offset(5).Value & Cell.Offset(2).Address & ")"
-
+    '!!!! https://github.com/pyscripter/XLRisk/issues/11
+    Cell.Offset(7).Formula = "=INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & ")"
+    Cell.Offset(8).Formula = "=OFFSET(INDIRECT(" & Cell.Offset(5).Value & Cell.Offset(6).Address() & "),0," & Cell.Offset(5).Value & Cell.Offset(2).Address & ")"
+    mOutSheet.Names.Add Name:="TornadoX", RefersTo:=Cell.Offset(7).FormulaLocal
+    mOutSheet.Names.Add Name:="TornadoY", RefersTo:=Cell.Offset(8).FormulaLocal
+    Cell.Offset(7).Clear
+    Cell.Offset(8).Clear
+    
     mOutSheet.Range("TornadoY").Select
     'Create Chart
     Set R = Cell.Offset(3).Resize(WorksheetFunction.Max(ChartHeight, mRiskInputs.Count), ChartWidth)
