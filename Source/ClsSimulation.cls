@@ -53,7 +53,7 @@ Private Sub Class_Initialize()
     mProcessingCorrmatInfo = False
 End Sub
 
-Private Sub SimIteration(Iter As Integer)
+Private Sub SimIteration(Iter As Long)
     Dim RiskInput As ClsRiskInput
     Dim RiskOutput As ClsRiskOutput
     Dim I As Integer
@@ -95,7 +95,7 @@ End Sub
 
 Public Sub Run()
     Dim AppCalculation As XlCalculation
-    Dim Iter As Integer
+    Dim Iter As Long
     Dim OldProduceRandomSample As Boolean
     Dim SimResults As ClsSimResults
     Dim InputGroup As ClsInputGroup

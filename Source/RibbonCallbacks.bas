@@ -71,7 +71,7 @@ Sub RibbonSetIterations(control As IRibbonControl, text As String)
     
     Set XLRisk = SetUpXLRisk
     On Error GoTo InvalidNumber
-    XLRisk.Range("Iterations") = CInt(text)
+    XLRisk.Range("Iterations") = CLng(text)
     Exit Sub
 InvalidNumber:
     MsgBox ("Invalid Number")
