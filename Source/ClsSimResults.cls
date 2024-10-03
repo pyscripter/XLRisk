@@ -332,7 +332,8 @@ Sub ProduceCorrelations(Cell As Range)
     CalculateDependencyMatrix
     For I = 1 To mRiskInputs.Count
         For J = 1 To mRiskOutputs.Count
-            If Not mDependencyMatrix(I, J) Then Cell.Offset(2 + I, J).ClearContents
+            If Not mDependencyMatrix(I, J) Or (VarType(Cell.Offset(2 + I, J).Value) = vbError) Then _
+              Cell.Offset(2 + I, J).ClearContents
         Next J
     Next I
     
