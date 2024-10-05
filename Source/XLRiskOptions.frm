@@ -23,7 +23,7 @@ Private Sub btnOK_Click()
     Dim XLRisk As Worksheet
     Set XLRisk = SetUpXLRisk
     XLRisk.Range("Seed") = CDbl(tbSeed.text)
-    XLRisk.Range("Iterations") = CInt(cbIterations.text)
+    XLRisk.Range("Iterations") = CLng(cbIterations.text)
     XLRisk.Range("ScreenUpdate") = cbScreenUpdate.Value
     XLRisk.Range("LatinHypercube") = cbLatinHypercube.Value
     XLRisk.Range("CalcDataTables") = cbCalcDataTables.Value

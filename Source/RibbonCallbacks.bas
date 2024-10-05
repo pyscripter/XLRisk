@@ -5,15 +5,38 @@ Option Explicit
 Private XLRiskRibbonUI As IRibbonUI
 Private Running As Boolean
 
+'Used to store RibbonUI ID to Registry
+Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As Long)
+
 'Callback for customUI.onLoad
 Sub OnRibbonLoad(ribbon As IRibbonUI)
+    Dim StoreRibbonPointer As LongPtr
+    
     Set XLRiskRibbonUI = ribbon
+    
+    'Store pointer to IRibbonUI in a Named Range within add-in file
+    StoreRibbonPointer = ObjPtr(ribbon)
+    ThisWorkbook.Names.Add Name:="RibbonID", RefersTo:=StoreRibbonPointer
 End Sub
 
+Sub GetRibbon()
+    Dim objRibbon As Object
+    Dim lRibbonPointer As LongPtr
+    On Error GoTo ErrorHandler
+    If XLRiskRibbonUI Is Nothing Then
+        lRibbonPointer = CLngPtr(Replace(ThisWorkbook.Names("RibbonID").RefersTo, "=", ""))
+        CopyMemory objRibbon, lRibbonPointer, LenB(lRibbonPointer)
+        Set XLRiskRibbonUI = objRibbon
+        Set objRibbon = Nothing
+    End If
+ErrorHandler:
+    Exit Sub
+End Sub
 
 'Callback for BtnSetup onAction
 Sub RibbonShowOptions(control As IRibbonControl)
     ShowOptions
+    If XLRiskRibbonUI Is Nothing Then GetRibbon
     If Not XLRiskRibbonUI Is Nothing Then
         XLRiskRibbonUI.InvalidateControl "ComboIterations"
         XLRiskRibbonUI.InvalidateControl "BtnSamples"
@@ -88,6 +111,7 @@ Sub DelayedSimulate()
     Simulation.Run
 CleanUp:
     Running = False
+    If XLRiskRibbonUI Is Nothing Then GetRibbon
     If Not XLRiskRibbonUI Is Nothing Then XLRiskRibbonUI.Invalidate
     Set gSimulation = Nothing
 End Sub
@@ -95,6 +119,7 @@ End Sub
 'Callback for BtnRun onAction
 Sub RibbonSimulate(control As IRibbonControl)
     Running = True
+    If XLRiskRibbonUI Is Nothing Then GetRibbon
     If Not XLRiskRibbonUI Is Nothing Then XLRiskRibbonUI.Invalidate
     'Simulate after a delay to give Excel time to update the Ribbon
     Application.OnTime Now + TimeSerial(0, 0, 1), "DelayedSimulate"
