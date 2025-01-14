@@ -10,7 +10,7 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private mWB As Workbook
-Private mProcessingCorrmatInfo
+Private mProcessingCorrmatInfo As Boolean
 Private mSeed As Double
 Private mIterations As Long
 Private mScreenUpdate As Boolean
@@ -18,6 +18,7 @@ Private mLatinHypercube As Boolean
 Private mCalculateDataTables As Boolean
 Private mMacroBefore As String
 Private mMacroAfter As String
+Private mMacroAfterSimulation As String
 Private mSimError As Boolean
 Private mSimErrorMsg As String
 ' The following two-dimensional array will contain the values of Iter, Risk Input Samples, Risk Output results
@@ -49,6 +50,7 @@ Private Sub Class_Initialize()
     mCalculateDataTables = XLRisk.Range("CalcDataTables").Value
     mMacroBefore = XLRisk.Range("MacroBefore").Value
     mMacroAfter = XLRisk.Range("MacroAfter").Value
+    mMacroAfterSimulation = XLRisk.Range("MacroAfterSimulation").Value
     mCurrentIteration = 0
     mProcessingCorrmatInfo = False
 End Sub
@@ -87,6 +89,7 @@ Private Sub SimIteration(Iter As Long)
         mSimResults(Iter, I) = RiskOutput.Cell.Value
         I = I + 1
     Next RiskOutput
+    
     Exit Sub
 SSError:
     mSimError = True
@@ -196,6 +199,9 @@ Public Sub Run()
     Set SimResults = New ClsSimResults
     SimResults.Init mRiskInputs, mRiskOutputs, mIterations, mSimResults
     SimResults.ProduceResults
+
+    'Run Macro After Simulation
+    If mMacroAfterSimulation <> vbNullString Then Application.Run "'" & mWB.Name & "'!" & mMacroAfterSimulation
 RestoreExcel:
     'Restore ProduceRandomSample
     ProduceRandomSample = OldProduceRandomSample
@@ -250,7 +256,7 @@ InputGroupNotFound:
     Exit Sub
 InputNotFound:
     Err.Raise Number:=vbObjectError + 15, _
-              Source:="ProcessCorrmatInfo", _
+              source:="ProcessCorrmatInfo", _
               Description:="Risk Input Not Found"
 End Sub
 

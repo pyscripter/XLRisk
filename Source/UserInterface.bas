@@ -36,7 +36,7 @@ Public Function SetUpXLRisk() As Worksheet
             .Cells(5, 1) = "Latin Hypercube"
             .Cells(5, 2) = True
             .Names.Add Name:="LatinHypercube", RefersTo:=.Cells(5, 2)
-            .Cells(6, 1) = "Calculate data dables during simulation"
+            .Cells(6, 1) = "Calculate data tables during simulation"
             .Cells(6, 2) = True
             .Names.Add Name:="CalcDataTables", RefersTo:=.Cells(6, 2)
         
@@ -46,21 +46,24 @@ Public Function SetUpXLRisk() As Worksheet
             .Cells(11, 1) = "Macro to run after each iteration"
             .Cells(11, 2) = ""
             .Names.Add Name:="MacroAfter", RefersTo:=.Cells(11, 2)
+            .Cells(12, 1) = "Macro to run after simulation"
+            .Cells(12, 2) = ""
+            .Names.Add Name:="MacroAfterSimulation", RefersTo:=.Cells(12, 2)
                         
             .Columns(1).AutoFit
-            .Range("A2.A12").Font.Italic = True
+            .Range("A2..A12").Font.Italic = True
     
             .Cells(1, 4) = "Simulation Inputs"
             .Cells(3, 4) = "Range"
             .Cells(3, 5) = "Formula"
-            .Range("G1.H3").Font.Bold = True
+            .Range("D1..E3").Font.Bold = True
     
             .Names.Add Name:="RiskInputs", RefersTo:=.Cells(3, 4)
       
             .Cells(1, 7) = "Simulation Outputs"
             .Cells(3, 7) = "Range"
             .Cells(3, 8) = "Name"
-            .Range("D1.E3").Font.Bold = True
+            .Range("G1..H3").Font.Bold = True
             .Names.Add Name:="RiskOutputs", RefersTo:=.Cells(3, 7)
         End With
         CurrentWS.Activate

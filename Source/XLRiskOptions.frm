@@ -1,7 +1,7 @@
 VERSION 5.00
 Begin {C62A69F0-16DC-11CE-9E98-00AA00574A4F} XLRiskOptions 
    Caption         =   "XLRisk Options"
-   ClientHeight    =   5085
+   ClientHeight    =   5340
    ClientLeft      =   105
    ClientTop       =   435
    ClientWidth     =   5490
@@ -13,6 +13,7 @@ Attribute VB_GlobalNameSpace = False
 Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = True
 Attribute VB_Exposed = False
+
 Option Explicit
 
 Private Sub btnCancel_Click()
@@ -29,6 +30,7 @@ Private Sub btnOK_Click()
     XLRisk.Range("CalcDataTables") = cbCalcDataTables.Value
     XLRisk.Range("MacroBefore") = tbMacroBefore.Value
     XLRisk.Range("MacroAfter") = tbMacroAfter.Value
+    XLRisk.Range("MacroAfterSimulation") = tbMacroAfterSimulation.Value
     If ProduceRandomSample <> cbRandomSamples.Value Then
         ProduceRandomSample = cbRandomSamples.Value
         Application.CalculateFull
@@ -55,4 +57,6 @@ Private Sub UserForm_Initialize()
     cbCalcDataTables = CBool(XLRisk.Range("CalcDataTables"))
     tbMacroBefore = CStr(XLRisk.Range("MacroBefore"))
     tbMacroAfter = CStr(XLRisk.Range("MacroAfter"))
+    tbMacroAfterSimulation = CStr(XLRisk.Range("MacroAfterSimulation"))
 End Sub
+

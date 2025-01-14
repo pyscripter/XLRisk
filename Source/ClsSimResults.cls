@@ -313,7 +313,7 @@ Sub ProduceCorrelations(Cell As Range)
     Cell.Font.Bold = True
     mOutSheet.Names.Add Name:="Correlations", RefersTo:=Cell
     
-    Set InputNames = Range("InputResults").Offset(-2)
+    Set InputNames = mOutSheet.Range("InputResults").Offset(-2)
     Set FirstInput = mOutSheet.Range("InputResults").Resize(mIterations, 1)
     OutAddress = mOutSheet.Range("OutputResults").Resize(mIterations, 1).Address(True, False)
     For I = 1 To mRiskInputs.Count
@@ -412,7 +412,7 @@ Sub ProduceTornadoDiagram()
     Dim R As Range
     Dim SortedTable As Range
     Dim NewChart As Chart
-    Dim Source As Series
+    Dim source As Series
     Dim I As Integer
 
     Set Cell = mOutSheet.Range("Tornado")
@@ -453,7 +453,7 @@ Sub ProduceTornadoDiagram()
     Cell.Resize(2, 2).Columns.AutoFit
     
     Cell.Offset(4).Formula = "=CELL(""filename"", A1)"
-    If Cell.Offset(4).Value = "" Then 'filename not saved
+    If Cell.Offset(4).Value = vbNullString Then 'filename not saved
       Cell.Offset(5).Formula = "=""'" & mOutSheet.Name & "'!"""
     Else
       ' This is so that the chart is shown correctly when the sheet is renamed
@@ -483,15 +483,15 @@ Sub ProduceTornadoDiagram()
         '.ChartType = xlBarClustered
         .HasLegend = False
         .PlotVisibleOnly = False
-        Set Source = .SeriesCollection(1)
-        Source.Values = "='" & mOutSheet.Name & "'!TornadoY"
-        Source.XValues = "='" & mOutSheet.Name & "'!TornadoX"
+        Set source = .SeriesCollection(1)
+        source.Values = "='" & mOutSheet.Name & "'!TornadoY"
+        source.XValues = "='" & mOutSheet.Name & "'!TornadoX"
         .Axes(xlValue).MaximumScale = 1
         .Axes(xlValue).MinimumScale = -1
         .Axes(xlCategory).TickLabelPosition = xlTickLabelPositionLow
         .ApplyDataLabels xlDataLabelsShowValue
         .SetElement (msoElementDataLabelOutSideEnd)
-        Source.DataLabels.NumberFormat = "0.00"
+        source.DataLabels.NumberFormat = "0.00"
         .SetElement (msoElementChartTitleAboveChart)
         .ChartTitle.Caption = "='" & mOutSheet.Name & "'!" & Cell.Offset(3).Address
         .ChartTitle.Font.Size = 14
