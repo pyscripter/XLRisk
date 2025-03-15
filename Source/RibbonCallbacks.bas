@@ -5,8 +5,10 @@ Option Explicit
 Private XLRiskRibbonUI As IRibbonUI
 Private Running As Boolean
 
-'Used to store RibbonUI ID to Registry
-Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As Long)
+#If Win32 Then
+  'Used to restore RibbonUI ID
+  Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As Long)
+#End If
 
 'Callback for customUI.onLoad
 Sub OnRibbonLoad(ribbon As IRibbonUI)
@@ -14,21 +16,25 @@ Sub OnRibbonLoad(ribbon As IRibbonUI)
     
     Set XLRiskRibbonUI = ribbon
     
-    'Store pointer to IRibbonUI in a Named Range within add-in file
-    StoreRibbonPointer = ObjPtr(ribbon)
-    ThisWorkbook.Names.Add Name:="RibbonID", RefersTo:=StoreRibbonPointer
+    #If Win32 Then
+        'Store pointer to IRibbonUI in a Named Range within add-in file
+        StoreRibbonPointer = ObjPtr(ribbon)
+        ThisWorkbook.Names.Add Name:="RibbonID", RefersTo:=StoreRibbonPointer
+    #End If
 End Sub
 
 Sub GetRibbon()
     Dim objRibbon As Object
     Dim lRibbonPointer As LongPtr
     On Error GoTo ErrorHandler
-    If XLRiskRibbonUI Is Nothing Then
-        lRibbonPointer = CLngPtr(Replace(ThisWorkbook.Names("RibbonID").RefersTo, "=", ""))
-        CopyMemory objRibbon, lRibbonPointer, LenB(lRibbonPointer)
-        Set XLRiskRibbonUI = objRibbon
-        Set objRibbon = Nothing
-    End If
+    #If Win32 Then
+        If XLRiskRibbonUI Is Nothing Then
+            lRibbonPointer = CLngPtr(Replace(ThisWorkbook.Names("RibbonID").RefersTo, "=", ""))
+            CopyMemory objRibbon, lRibbonPointer, LenB(lRibbonPointer)
+            Set XLRiskRibbonUI = objRibbon
+            Set objRibbon = Nothing
+        End If
+    #End If
 ErrorHandler:
     Exit Sub
 End Sub
