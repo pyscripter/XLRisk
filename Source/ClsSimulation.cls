@@ -50,6 +50,7 @@ Private Sub Class_Initialize()
     mCalculateDataTables = XLRisk.Range("CalcDataTables").Value
     mMacroBefore = XLRisk.Range("MacroBefore").Value
     mMacroAfter = XLRisk.Range("MacroAfter").Value
+    On Error Resume Next
     mMacroAfterSimulation = XLRisk.Range("MacroAfterSimulation").Value
     mCurrentIteration = 0
     mProcessingCorrmatInfo = False

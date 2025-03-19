@@ -57,6 +57,12 @@ Private Sub UserForm_Initialize()
     cbCalcDataTables = CBool(XLRisk.Range("CalcDataTables"))
     tbMacroBefore = CStr(XLRisk.Range("MacroBefore"))
     tbMacroAfter = CStr(XLRisk.Range("MacroAfter"))
+    On Error Resume Next
     tbMacroAfterSimulation = CStr(XLRisk.Range("MacroAfterSimulation"))
+    If Err <> 0 Then
+        XLRisk.Cells(12, 1) = "Macro to run after simulation"
+        XLRisk.Cells(12, 2) = ""
+        XLRisk.Names.Add Name:="MacroAfterSimulation", RefersTo:=XLRisk.Cells(12, 2)
+    End If
 End Sub
 

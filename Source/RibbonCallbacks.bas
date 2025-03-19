@@ -7,7 +7,7 @@ Private Running As Boolean
 
 #If Win32 Then
   'Used to restore RibbonUI ID
-  Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As Long)
+  Public Declare PtrSafe Sub CopyMemory Lib "kernel32" Alias "RtlMoveMemory" (ByRef destination As Any, ByRef source As Any, ByVal length As LongPtr)
 #End If
 
 'Callback for customUI.onLoad
