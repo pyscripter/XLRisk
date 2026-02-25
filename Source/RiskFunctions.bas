@@ -276,7 +276,7 @@ Attribute RiskTriang.VB_ProcData.VB_Invoke_Func = " \n20"
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
-    If (Mode <= Min) Or (Max <= Mode) Then
+    If (Mode < Min) Or (Max < Mode) Then
       RiskTriang = CVErr(xlErrValue)
       Exit Function
     End If
@@ -339,7 +339,7 @@ Attribute RiskPert.VB_ProcData.VB_Invoke_Func = " \n20"
     Application.Volatile (ProduceRandomSample)
     
     'Error checking
-    If (Mode <= Min) Or (Max <= Mode) Then
+    If (Mode < Min) Or (Max < Mode) Then
       RiskPert = CVErr(xlErrValue)
       Exit Function
     End If
@@ -558,3 +558,4 @@ Public Function RndM(Optional ByVal Number As Long) As Double
     ' return a value between 0 and 1
     RndM = dblRnd - Int(dblRnd)
 End Function
+
