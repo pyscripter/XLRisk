@@ -1,7 +1,7 @@
 # XLRisk
 XLRisk is an Excel addin for performing [Monte Carlo simulation](https://en.wikipedia.org/wiki/Monte_Carlo_method).  It is **free and open source** and it is **compatible with Excel for the Mac**.  It works in a similar fashion to commercial addins such as [@RISK by Palisade](http://www.palisade.com).
 
-*Note:*  
+*Note:*
 Excel 2013 or later required.  Excel 16 or newer is recommended.
 
 ![The XLRisk Ribbon Tab](https://github.com/pyscripter/XLRisk/wiki/Images/XLRisk_Ribbon.jpg)
@@ -28,7 +28,26 @@ Excel 2013 or later required.  Excel 16 or newer is recommended.
 * [Article on Risk Analysis using XLRisk](https://medium.com/analytics-vidhya/building-a-probabilistic-risk-estimate-using-monte-carlo-simulations-cf904b1ab503) by Zhijing Eu
 * [Video tutorial](https://www.youtube.com/watch?v=0RiEquwDjNg)
 
-**Credits:**  
+## Schedule risk functions
+
+Schedule-risk models use one row per activity:
+
+* **Activity IDs** — a range containing unique activity names or numbers.
+* **Durations** — a range containing Monte Carlo duration values (for example `=RiskNormal(5,1)`).
+* **Predecessors** — a range containing comma-separated activity IDs. Use dependency and lag columns for explicit relationships.
+* **Dependency types** — optional range with `FS`, `SS`, `FF`, or `SF`; separate types with commas for multiple predecessors.
+* **Lags** — optional range with a lag value or comma-separated lag values aligned with predecessor IDs.
+
+```vb
+=RiskScheduleFinish(A2:A10,B2:B10,C2:C10,D2:D10,E2:E10)
+=RiskScheduleActivityCritical("C",A2:A10,B2:B10,C2:C10,D2:D10,E2:E10)
+=RiskScheduleDeadlineProbability(J4:J1003,30)
+=RiskScheduleDeadline(J4:J1003,0.95)
+```
+
+After a simulation, the results sheet shows criticality index percentages for each activity and deadline controls for choosing a finish-output range, target day, and confidence level. Run the built-in deterministic tests with `ScheduleRisk_RunTests`.
+
+**Credits:**
 I would like to thank the [ESMT](https://www.esmt.org/) students for providing an incentive for building this addin and helping to improve it.
 Thanks are due also to Howard Rudd for his excellent [series of posts](https://www.howardrudd.net/how-tos/vba-monte-carlo-risk-analysis-spreadsheet-with-correlation-part-1/) on Monte Carlo simulation.
 XLRisk makes use of some of his code.

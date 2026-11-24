@@ -90,6 +90,8 @@ Private Sub SimIteration(Iter As Long)
         mSimResults(Iter, I) = RiskOutput.Cell.Value
         I = I + 1
     Next RiskOutput
+
+    ScheduleRiskRecordIteration Iter
     
     Exit Sub
 SSError:
@@ -166,6 +168,7 @@ Public Sub Run()
     Next InputGroup
     
     'Randomize
+    ScheduleRiskReset
     If mSeed <> 0 Then
         'https://stackoverflow.com/questions/16589180/visual-basic-random-number-with-seed-but-in-reverse
         Rnd (-1)
