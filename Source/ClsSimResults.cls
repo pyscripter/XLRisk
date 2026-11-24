@@ -196,6 +196,8 @@ Private Sub InitialiseResults()
             .Add Anchor:=Curr.Offset(IIf(Val(Application.Version) >= 16, 8, 7)), Address:=vbNullString, _
                 SubAddress:=mOutSheet.Range("Tornado").Offset(-2).Address, TextToDisplay:="Risk Tornado Diagram"
         End If
+        .Add Anchor:=Curr.Offset(9), Address:=vbNullString, _
+            SubAddress:="ScheduleRisk", TextToDisplay:="Schedule Risk and Deadline"
     End With
     mOutSheet.Columns(1).AutoFit
 End Sub
@@ -253,6 +255,9 @@ Private Sub ProduceStatistics()
     
     'Correlations
     ProduceCorrelations Cell.Offset(66)
+
+    'Schedule-risk results and deadline controls
+    ProduceScheduleResults
     
     'AutoFit
     mOutSheet.Columns(Cell.Column).AutoFit
@@ -340,6 +345,68 @@ Sub ProduceCorrelations(Cell As Range)
     mOutSheet.Range("SimStats").Offset(-3).Resize(3, 1 + mRiskOutputs.Count).Copy Cell
     Cell = "Correlations"
     Cell.Offset(2) = "Risk Inputs"
+End Sub
+
+Private Sub ProduceScheduleResults()
+    Dim Count As Long
+    Dim I As Long
+    Dim Cell As Range
+
+    Count = ScheduleRiskGetActivityCount()
+    If Count = 0 Then Exit Sub
+
+    Set Cell = mOutSheet.Range("Correlations").Offset(mRiskInputs.Count + 5, 0)
+    mOutSheet.Names.Add Name:="ScheduleRisk", RefersTo:=Cell
+
+    With Cell
+        .Value = "Schedule Risk"
+        .Font.Bold = True
+        .Offset(1, 0).Value = "Activity"
+        .Offset(1, 1).Value = "Critical Count"
+        .Offset(1, 2).Value = "Criticality Index"
+        ThickBorders .Offset(1).Resize(Count + 1, 3)
+    End With
+
+    For I = 1 To Count
+        Cell.Offset(I + 1, 0).Value = ScheduleRiskGetActivityId(I)
+        Cell.Offset(I + 1, 1).Value = ScheduleRiskGetCriticalCount(I)
+        Cell.Offset(I + 1, 2).Value = ScheduleRiskGetCriticalPercent(I)
+        Cell.Offset(I + 1, 2).NumberFormat = "0.0%"
+    Next I
+
+    Dim DeadlineCell As Range
+    Set DeadlineCell = Cell.Offset(0, 5)
+    DeadlineCell.Value = "Schedule Deadline"
+    DeadlineCell.Font.Bold = True
+    DeadlineCell.Offset(1, 0).Value = "Finish output"
+    DeadlineCell.Offset(2, 0).Value = "Target day"
+    DeadlineCell.Offset(3, 0).Value = "P(finish <= target)"
+    DeadlineCell.Offset(4, 0).Value = "Confidence"
+    DeadlineCell.Offset(5, 0).Value = "Deadline date"
+
+    DeadlineCell.Offset(1, 1).Value = mOutSheet.Range("OutputResults").Offset(-2, 0).Value
+    mOutSheet.Names.Add Name:="ScheduleFinishOutput", RefersTo:=DeadlineCell.Offset(1, 1)
+    mOutSheet.Names.Add Name:="ScheduleFinishOutputHeader", _
+        RefersTo:=mOutSheet.Range("OutputResults").Offset(-2, 0).Resize(1, mRiskOutputs.Count)
+
+    DeadlineCell.Offset(2, 1).Value = 0
+    DeadlineCell.Offset(4, 1).Value = 0.95
+    mOutSheet.Names.Add Name:="ScheduleDeadlineTarget", RefersTo:=DeadlineCell.Offset(2, 1)
+    mOutSheet.Names.Add Name:="ScheduleDeadlineConfidence", RefersTo:=DeadlineCell.Offset(4, 1)
+
+    DeadlineCell.Offset(3, 1).Formula = "=RiskScheduleDeadlineProbability(INDEX(OutputResults,0,MATCH(ScheduleFinishOutput,ScheduleFinishOutputHeader,0)),ScheduleDeadlineTarget)"
+    DeadlineCell.Offset(5, 1).Formula = "=RiskScheduleDeadline(INDEX(OutputResults,0,MATCH(ScheduleFinishOutput,ScheduleFinishOutputHeader,0)),ScheduleDeadlineConfidence)"
+
+    With DeadlineCell.Offset(1, 1).Validation
+        .Delete
+        .Add Type:=xlValidateList, AlertStyle:=xlValidAlertStop, Operator:=xlBetween, _
+            Formula1:= "=" & mOutSheet.Name & "!" & mOutSheet.Range("OutputResults").Offset(-2, 0).Resize(1, mRiskOutputs.Count).Address
+        .InCellDropdown = True
+    End With
+
+    DeadlineCell.Offset(3, 1).NumberFormat = "0.0%"
+    DeadlineCell.Offset(1).Resize(5, 2).Columns.AutoFit
+    ThickBorders DeadlineCell.Offset(1).Resize(5, 2)
 End Sub
 
 Private Sub ProduceCumulativeDistributions()
